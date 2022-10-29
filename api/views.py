@@ -4,5 +4,5 @@ from rest_framework.decorators import api_view
 
 @api_view(['Post'])
 def getPath(request):
-    person = {'name': 'Ensar', 'age': 21}
+    print(request.data)
     return Response(request.data)
