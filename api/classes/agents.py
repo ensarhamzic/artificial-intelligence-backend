@@ -1,3 +1,6 @@
+from itertools import count
+
+
 class Agent():
     def __init__(self, row, col):
         self.row = row
@@ -23,32 +26,52 @@ class Aki(Agent):
                 # add upper tile if exists
 
                 if i-1 >= 0:
-                    neighbors.append(tiles[i-1][j].cost)
+                    neighbors.append(tiles[i-1][j])
 
                 # add right tile if exists
                 if j+1 < len(tiles[i]):
-                    neighbors.append(tiles[i][j+1].cost)
+                    neighbors.append(tiles[i][j+1])
 
                 # add down tile if exists
                 if i+1 < len(tiles):
-                    neighbors.append(tiles[i+1][j].cost)
+                    neighbors.append(tiles[i+1][j])
 
                 # add left tile if exists
                 if j-1 >= 0:
-                    neighbors.append(tiles[i][j-1].cost)
+                    neighbors.append(tiles[i][j-1])
 
                 neighborDict[(i, j)] = neighbors
 
-        for keys, values in neighborDict.items():
-            print(keys)
-            print(values)
-
-        visited = set()  # Set to keep track of visited nodes.
+        visited = set()  # Visited nodes are added here (set is used to prevent duplicates)
         path = [(self.row, self.col)]
 
-        # def dfs(visited, graph, node):
-        #     if node not in visited:
-        #         print (node)
-        #         visited.add(node)
-        #         for neighbour in graph[node]:
-        #             dfs(visited, graph, neighbour)
+        def dfs(node):
+            currNode = (node.row, node.col)
+            if currNode not in visited:
+                print("----", currNode)
+                visited.add(currNode)
+                neighbors = neighborDict[currNode]
+
+                # Here, we make a set (which ignores duplicate values), and populate it with
+                # prices of every neighbor. After that, we compare length of set to the number of unvisited neighbors,
+                # and if they are the same it means that every neighbor has different price, but if
+                # they are not the same, that means that at least 2 neighbor tiles have same price.
+                # We need this information to decide which neighbors to give advantage to
+                prices = set()
+                counter = 0
+                for neighbor in neighbors:
+                    if (neighbor.row, neighbor.col) not in visited:
+                        print("ADDED", neighbor.row, neighbor.col)
+                        prices.add(neighbor.cost)
+                        counter += 1
+                if len(prices) == counter:
+                    # sort neighbors ascending
+                    neighborDict[currNode] = sorted(
+                        neighbors, key=lambda tile: tile.cost)
+                    for tile in neighborDict[currNode]:
+                        print("COST", tile.cost)
+
+                for neighbor in neighborDict[currNode]:
+                    dfs(neighbor)
+
+        dfs(tiles[self.row][self.col])
