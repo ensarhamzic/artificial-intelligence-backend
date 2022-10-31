@@ -1,5 +1,5 @@
 class Tile():
-    def __init__(self, type):
+    def __init__(self, type, row, col):
         price = 0
         if type == "r":
             price = 2
@@ -16,6 +16,8 @@ class Tile():
 
         self.type = type
         self.cost = price
+        self.row = row
+        self.col = col
 
 
 class AgentPosition():
@@ -40,7 +42,7 @@ class Map():
         for i in range(len(map)):
             mapRow = []
             for j in range(len(map[i])):
-                tile = Tile(map[i][j])
+                tile = Tile(map[i][j], i, j)
                 mapRow.append(tile)
             tilesMap.append(mapRow)
 

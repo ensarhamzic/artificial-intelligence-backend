@@ -8,11 +8,17 @@ from api.classes.map import Map
 def getPath(request):
     map = Map(request.data["map"], request.data["agentPosition"],
               request.data["finishPosition"])
+    agent = request.data["agent"]
 
-    for i in range(len(map.tiles)):
-        for j in range(len(map.tiles[i])):
-            print(map.tiles[i][j].cost)
+    if agent == 1:
+        aki = Aki(map.agentPosition.row, map.agentPosition.col)
+        path = aki.getAgentPath(map)
 
-        print()
-        print()
-    return Response(map.tiles)
+    # for i in range(len(map.tiles)):
+    #     for j in range(len(map.tiles[i])):
+    #         print(map.tiles[i][j].cost)
+
+    #     print()
+    #     print()
+
+    return Response("a")
