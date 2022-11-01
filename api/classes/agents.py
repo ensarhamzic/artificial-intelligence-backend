@@ -16,7 +16,7 @@ class Aki(Agent):
 
     def getAgentPath(self, map):
         tiles = map.tiles
-        finishPositions = map.finishPosition
+        finishPosition = map.finishPosition
         neighborDict = {}  # empty dictionary that we need to fill
         # key => (i, j) -> i - row, j - column
         # value => array of neighbors arranged like up, right, down, left
@@ -26,6 +26,7 @@ class Aki(Agent):
                 # add upper tile if exists
 
                 if i-1 >= 0:
+                    tile = tiles[i-1][j]
                     neighbors.append(tiles[i-1][j])
 
                 # add right tile if exists
@@ -43,35 +44,33 @@ class Aki(Agent):
                 neighborDict[(i, j)] = neighbors
 
         visited = set()  # Visited nodes are added here (set is used to prevent duplicates)
-        path = [(self.row, self.col)]
+        path = []
 
         def dfs(node):
             currNode = (node.row, node.col)
             if currNode not in visited:
-                print("----", currNode)
+                path.append(node)
                 visited.add(currNode)
-                neighbors = neighborDict[currNode]
 
-                # Here, we make a set (which ignores duplicate values), and populate it with
-                # prices of every neighbor. After that, we compare length of set to the number of unvisited neighbors,
-                # and if they are the same it means that every neighbor has different price, but if
-                # they are not the same, that means that at least 2 neighbor tiles have same price.
-                # We need this information to decide which neighbors to give advantage to
-                prices = set()
-                counter = 0
+                print("----", currNode)
+                print()
+                # neighbors = neighborDict[currNode]
+                neighbors = neighborDict[currNode].copy()
+
+                # variable side is used to give preference to sides.
+                # we go through neighbors list (which is already sorted as north, east, south, west),
+                # but we give those sides integer values to be able to sort them by that field easily
+                side = 1
                 for neighbor in neighbors:
-                    if (neighbor.row, neighbor.col) not in visited:
-                        print("ADDED", neighbor.row, neighbor.col)
-                        prices.add(neighbor.cost)
-                        counter += 1
-                if len(prices) == counter:
-                    # sort neighbors ascending
-                    neighborDict[currNode] = sorted(
-                        neighbors, key=lambda tile: tile.cost)
-                    for tile in neighborDict[currNode]:
-                        print("COST", tile.cost)
+                    neighbor.side = side
+                    side += 1
 
-                for neighbor in neighborDict[currNode]:
-                    dfs(neighbor)
+                neighbors.sort(key=lambda tile: (tile.cost, tile.side))
+
+                for neighbor in neighbors:
+                    # condition to stop calling recursive method if finish is found
+                    if (finishPosition.row, finishPosition.col) not in visited:
+                        dfs(neighbor)
 
         dfs(tiles[self.row][self.col])
+        return path

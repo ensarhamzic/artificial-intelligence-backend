@@ -21,4 +21,19 @@ def getPath(request):
     #     print()
     #     print()
 
-    return Response("c")
+    tiles = []
+    price = 0
+    for tile in path:
+        tiles.append({
+            "row": tile.row,
+            "col": tile.col,
+            "cost": tile.cost
+        })
+        price += tile.cost
+
+    data = {
+        "tiles": tiles,
+        "price": price
+    }
+
+    return Response(data)
