@@ -1,6 +1,3 @@
-from itertools import count
-
-
 class Agent():
     def __init__(self, row, col):
         self.row = row
