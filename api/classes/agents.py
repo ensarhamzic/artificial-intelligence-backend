@@ -7,6 +7,12 @@ class Agent():
         pass
 
 
+def isAdjacent(el1, el2):
+    if (el1[0] == el2[0] and abs(el1[1] - el2[1]) == 1) or (el1[1] == el2[1] and abs(el1[0] - el2[0]) == 1):
+        return True
+    return False
+
+
 class Aki(Agent):
     def __init__(self, row, col):
         super().__init__(row, col)
@@ -46,6 +52,12 @@ class Aki(Agent):
         def dfs(node):
             currNode = (node.row, node.col)
             if currNode not in visited:
+
+                if len(path) > 1:
+                    while not isAdjacent((path[-1].row, path[-1].col), currNode):
+                        path.pop()
+                # if not isAdjacent((path[-1].row, path[-1].col), currNode):
+
                 path.append(node)
                 visited.add(currNode)
 
