@@ -26,8 +26,8 @@ class Aki(Agent):
         for i in range(len(tiles)):
             for j in range(len(tiles[i])):
                 neighbors = []
-                # add upper tile if exists
 
+                # add upper tile if exists
                 if i-1 >= 0:
                     tile = tiles[i-1][j]
                     neighbors.append(tiles[i-1][j])

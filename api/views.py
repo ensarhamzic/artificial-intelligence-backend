@@ -14,13 +14,6 @@ def getPath(request):
         aki = Aki(map.agentPosition.row, map.agentPosition.col)
         path = aki.getAgentPath(map)
 
-    # for i in range(len(map.tiles)):
-    #     for j in range(len(map.tiles[i])):
-    #         print(map.tiles[i][j].cost)
-
-    #     print()
-    #     print()
-
     tiles = []
     price = 0
     for tile in path:
