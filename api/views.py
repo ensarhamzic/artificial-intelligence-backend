@@ -1,6 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from api.classes.agents import Aki
+from api.classes.agents import *
 from api.classes.map import Map
 
 
@@ -11,8 +11,11 @@ def getPath(request):
     agent = request.data["agent"]
 
     if agent == 1:
-        aki = Aki(map.agentPosition.row, map.agentPosition.col)
-        path = aki.getAgentPath(map)
+        agent = Aki(map.agentPosition.row, map.agentPosition.col)
+    elif agent == 2:
+        agent = Jocke(map.agentPosition.row, map.agentPosition.col)
+
+    path = agent.getAgentPath(map)
 
     tiles = []
     price = 0
