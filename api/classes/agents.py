@@ -166,10 +166,40 @@ class Jocke(Agent):
                 path.append(s)
                 currNode = (s.row, s.col)
 
+                # if current tile is NOT adjacent to the last one in path, go back till it is
+                while len(path) > 1 and not isAdjacent((path[-1].row, path[-1].col), currNode):
+                    path.pop()
+
+                if currNode[0] == finishPosition.row and currNode[1] == finishPosition.col:
+                    return
+
                 # TODO: IZBACI SVE IZ PATHA AKO TR CVOR NIJE SUSEDNI (SLICNO KAO U DFS)
-                print(s.row, s.col)
+                print()
+                print("SKACEMO NA:", s.row, s.col)
                 print()
                 neighbors = neighborDict[currNode].copy()
+
+                side = 1
+                for neighbor in neighbors:
+                    neighbor.side = side
+                    side += 1
+
+                    price = 0
+                    count = 0
+                    innerNode = (neighbor.row, neighbor.col)
+                    print("INNER:", innerNode)
+                    innerNeighbors = neighborDict[innerNode].copy()
+                    for innerNeighbor in innerNeighbors:
+                        if (innerNeighbor.row, innerNeighbor.col) not in visited:
+                            price += innerNeighbor.cost
+                            count += 1
+                    if price == 0:
+                        neighbor.averageCost = 0
+                    else:
+                        neighbor.averageCost = price / count
+                    print("AVG", neighbor.averageCost)
+
+                neighbors.sort(key=lambda tile: (tile.averageCost, tile.side))
 
                 # TODO: dodaj neighborsima side isto kao u dfs
                 # TODO: dodaj prosecnu cenu neposecenih suseda za svaki od neighborova
