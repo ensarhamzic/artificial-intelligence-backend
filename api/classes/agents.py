@@ -151,35 +151,89 @@ class Jocke(Agent):
         # dfs(tiles[self.row][self.col])
         # return path
 
+        # visited = set()  # Visited nodes are added here (set is used to prevent duplicates)
+        # path = []
+        # queue = []
+
+        # def bfs(node):
+        #     print("BFS")
+        #     currNode = (node.row, node.col)
+        #     visited.add(currNode)
+        #     queue.append(node)
+
+        #     while queue:
+        #         s = queue.pop(0)
+        #         path.append(s)
+        #         currNode = (s.row, s.col)
+
+        #         # if current tile is NOT adjacent to the last one in path, go back till it is
+        #         while len(path) > 1 and not isAdjacent((path[-1].row, path[-1].col), currNode):
+        #             path.pop()
+
+        #         if currNode[0] == finishPosition.row and currNode[1] == finishPosition.col:
+        #             return
+
+        #         # TODO: IZBACI SVE IZ PATHA AKO TR CVOR NIJE SUSEDNI (SLICNO KAO U DFS)
+        #         print()
+        #         print("SKACEMO NA:", s.row, s.col)
+        #         print()
+        #         neighbors = neighborDict[currNode].copy()
+
+        #         side = 1
+        #         for neighbor in neighbors:
+        #             neighbor.side = side
+        #             side += 1
+
+        #             price = 0
+        #             count = 0
+        #             innerNode = (neighbor.row, neighbor.col)
+        #             print("INNER:", innerNode)
+        #             innerNeighbors = neighborDict[innerNode].copy()
+        #             for innerNeighbor in innerNeighbors:
+        #                 if (innerNeighbor.row, innerNeighbor.col) not in visited:
+        #                     price += innerNeighbor.cost
+        #                     count += 1
+        #             if price == 0:
+        #                 neighbor.averageCost = 0
+        #             else:
+        #                 neighbor.averageCost = price / count
+        #             print("AVG", neighbor.averageCost)
+
+        #         neighbors.sort(key=lambda tile: (tile.averageCost, tile.side))
+
+        #         # TODO: dodaj neighborsima side isto kao u dfs
+        #         # TODO: dodaj prosecnu cenu neposecenih suseda za svaki od neighborova
+        #         # TODO: sortiraj neighbors prema prosecnoj ceni i strani slicno kao dfs
+
+        #         for neighbor in neighbors:
+        #             if (neighbor.row, neighbor.col) not in visited:
+        #                 visited.add((neighbor.row, neighbor.col))
+        #                 queue.append(neighbor)
+
+        # bfs(tiles[self.row][self.col])
+        # return path
+
         visited = set()  # Visited nodes are added here (set is used to prevent duplicates)
         path = []
         queue = []
 
         def bfs(node):
-            print("BFS")
-            currNode = (node.row, node.col)
-            visited.add(currNode)
-            queue.append(node)
-
+            # maintain a queue of paths
+            queue = []
+            # push the first path into the queue
+            queue.append([node])
             while queue:
-                s = queue.pop(0)
-                path.append(s)
-                currNode = (s.row, s.col)
-
-                # if current tile is NOT adjacent to the last one in path, go back till it is
-                while len(path) > 1 and not isAdjacent((path[-1].row, path[-1].col), currNode):
-                    path.pop()
-
+                # get the first path from the queue
+                path = queue.pop(0)
+                # get the last node from the path
+                node = path[-1]
+                currNode = (node.row, node.col)
+                # path found
                 if currNode[0] == finishPosition.row and currNode[1] == finishPosition.col:
-                    return
-
-                # TODO: IZBACI SVE IZ PATHA AKO TR CVOR NIJE SUSEDNI (SLICNO KAO U DFS)
-                print()
-                print("SKACEMO NA:", s.row, s.col)
-                print()
-                neighbors = neighborDict[currNode].copy()
+                    return path
 
                 side = 1
+                neighbors = neighborDict[currNode].copy()
                 for neighbor in neighbors:
                     neighbor.side = side
                     side += 1
@@ -190,9 +244,9 @@ class Jocke(Agent):
                     print("INNER:", innerNode)
                     innerNeighbors = neighborDict[innerNode].copy()
                     for innerNeighbor in innerNeighbors:
-                        if (innerNeighbor.row, innerNeighbor.col) not in visited:
-                            price += innerNeighbor.cost
-                            count += 1
+                        # if (innerNeighbor.row, innerNeighbor.col) not in visited:
+                        price += innerNeighbor.cost
+                        count += 1
                     if price == 0:
                         neighbor.averageCost = 0
                     else:
@@ -201,14 +255,13 @@ class Jocke(Agent):
 
                 neighbors.sort(key=lambda tile: (tile.averageCost, tile.side))
 
-                # TODO: dodaj neighborsima side isto kao u dfs
-                # TODO: dodaj prosecnu cenu neposecenih suseda za svaki od neighborova
-                # TODO: sortiraj neighbors prema prosecnoj ceni i strani slicno kao dfs
+                # enumerate all adjacent nodes, construct a
+                # new path and push it into the queue
+                for adjacent in neighbors:
+                    new_path = list(path)
+                    new_path.append(adjacent)
+                    queue.append(new_path)
 
-                for neighbor in neighbors:
-                    if (neighbor.row, neighbor.col) not in visited:
-                        visited.add((neighbor.row, neighbor.col))
-                        queue.append(neighbor)
+        path = bfs(tiles[self.row][self.col])
 
-        bfs(tiles[self.row][self.col])
         return path
