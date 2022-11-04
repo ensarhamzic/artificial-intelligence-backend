@@ -14,6 +14,10 @@ def getPath(request):
         agent = Aki(map.agentPosition.row, map.agentPosition.col)
     elif agent == 2:
         agent = Jocke(map.agentPosition.row, map.agentPosition.col)
+    elif agent == 3:
+        agent = Draza(map.agentPosition.row, map.agentPosition.col)
+    elif agent == 4:
+        agent = Bole(map.agentPosition.row, map.agentPosition.col)
 
     path = agent.getAgentPath(map)
 
