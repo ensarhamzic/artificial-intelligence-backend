@@ -187,6 +187,7 @@ class Draza(Agent):
         # value => array of neighbors arranged like up, right, down, left
         for i in range(len(tiles)):
             for j in range(len(tiles[i])):
+
                 neighbors = []
 
                 # add upper tile if exists
@@ -239,6 +240,7 @@ class Draza(Agent):
 
             neighbors = neighborDict[currNode]
 
+            # for every neighbor, if it is NOT in current path, add it to path
             for neighbor in neighbors:
                 pathCoordinates = []
                 for p in path["path"]:
@@ -259,4 +261,83 @@ class Bole(Agent):
         super().__init__(row, col)
 
     def getAgentPath(self, map):
-        pass
+        tiles = map.tiles
+        finishPosition = map.finishPosition
+        neighborDict = {}  # empty dictionary that we need to fill
+        # key => (i, j) -> i - row, j - column
+        # value => array of neighbors arranged like up, right, down, left
+        for i in range(len(tiles)):
+            for j in range(len(tiles[i])):
+                dx = abs(finishPosition.row - i)
+                dy = abs(finishPosition.col - j)
+                tiles[i][j].heuristics = 2 * (dx + dy)
+
+                neighbors = []
+
+                # add upper tile if exists
+                if i-1 >= 0:
+                    tile = tiles[i-1][j]
+                    neighbors.append(tiles[i-1][j])
+
+                # add right tile if exists
+                if j+1 < len(tiles[i]):
+                    neighbors.append(tiles[i][j+1])
+
+                # add down tile if exists
+                if i+1 < len(tiles):
+                    neighbors.append(tiles[i+1][j])
+
+                # add left tile if exists
+                if j-1 >= 0:
+                    neighbors.append(tiles[i][j-1])
+
+                neighborDict[(i, j)] = neighbors
+
+        startTile = tiles[self.row][self.col]
+        paths = [
+            {
+                "path": [startTile],
+                "price": startTile.cost,
+                "heuristics": startTile.heuristics
+            }
+        ]
+
+        while paths:
+            # get the smallest path from the queue
+            path = paths.pop(0)
+            # get the last node from the path
+            node = path["path"][-1]
+
+            # dynamic programming
+            # we get rid of all paths that are longer
+            filteredPaths = []
+            for dict in paths:
+                tempNode = dict["path"][-1]
+                if node != tempNode:
+                    filteredPaths.append(dict)
+
+            paths = filteredPaths
+
+            currNode = (node.row, node.col)
+            # path found
+            if currNode[0] == finishPosition.row and currNode[1] == finishPosition.col:
+                return path["path"]
+
+            neighbors = neighborDict[currNode]
+
+            # for every neighbor, if it is NOT in current path, add it to path
+            for neighbor in neighbors:
+                pathCoordinates = []
+                for p in path["path"]:
+                    pathCoordinates.append((p.row, p.col))
+                if (neighbor.row, neighbor.col) not in pathCoordinates:
+                    newPath = deepcopy(path)
+                    newPath["path"].append(neighbor)
+                    newPath["price"] += neighbor.cost
+                    newPath["heuristics"] = neighbor.heuristics
+                    paths.append(newPath)
+
+            paths.sort(key=lambda d: (
+                d['price'] + d['heuristics'], len(d['path'])))
+
+            print(len(paths))

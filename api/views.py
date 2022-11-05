@@ -36,4 +36,6 @@ def getPath(request):
         "price": price
     }
 
+    print("PRICE:", data["price"])
+
     return Response(data)
