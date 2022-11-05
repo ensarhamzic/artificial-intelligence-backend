@@ -168,6 +168,8 @@ class Jocke(Agent):
                         new_path.append(nbr)
                         queue.append(new_path)
 
+                print(len(queue))
+
         path = bfs(tiles[self.row][self.col])
 
         return path
@@ -219,10 +221,20 @@ class Draza(Agent):
             path = paths.pop(0)
             # get the last node from the path
             node = path["path"][-1]
+
+            # dynamic programming
+            # we get rid of all paths that are longer
+            filteredPaths = []
+            for dict in paths:
+                tempNode = dict["path"][-1]
+                if node != tempNode:
+                    filteredPaths.append(dict)
+
+            paths = filteredPaths
+
             currNode = (node.row, node.col)
             # path found
             if currNode[0] == finishPosition.row and currNode[1] == finishPosition.col:
-                print("GOTOVOOO!!!!")
                 return path["path"]
 
             neighbors = neighborDict[currNode]
@@ -237,10 +249,7 @@ class Draza(Agent):
                     newPath["price"] += neighbor.cost
                     paths.append(newPath)
 
-            paths.sort(key=lambda d: d['price'])
-
-            # bestPath = paths[0]["path"]
-            # for node in bestPath:
+            paths.sort(key=lambda d: (d['price'], len(d['path'])))
 
             print(len(paths))
 
