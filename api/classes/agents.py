@@ -133,11 +133,6 @@ class Jocke(Agent):
                 # get the last node from the path
                 node = path[-1]
                 currNode = (node.row, node.col)
-                # path found
-                if currNode[0] == finishPosition.row and currNode[1] == finishPosition.col:
-                    return path
-
-                visited.add(currNode)
 
                 side = 1
                 neighbors = neighborDict[currNode].copy()
@@ -145,7 +140,6 @@ class Jocke(Agent):
                 for neighbor in neighbors:
                     neighbor.side = side
                     side += 1
-
                     price = 0
                     count = 0
                     innerNode = (neighbor.row, neighbor.col)
@@ -163,10 +157,15 @@ class Jocke(Agent):
                 neighbors.sort(key=lambda tile: (tile.averageCost, tile.side))
 
                 for nbr in neighbors:
-                    if (nbr.row, nbr.col) not in visited:
-                        new_path = list(path)
-                        new_path.append(nbr)
-                        queue.append(new_path)
+                    nbrNode = (nbr.row, nbr.col)
+                    if nbrNode not in visited:
+                        newPath = list(path)
+                        newPath.append(nbr)
+                        queue.append(newPath)
+                        visited.add(nbrNode)
+                        # path found
+                        if nbrNode[0] == finishPosition.row and nbrNode[1] == finishPosition.col:
+                            return newPath
 
                 print(len(queue))
 
