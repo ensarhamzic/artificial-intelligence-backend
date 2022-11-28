@@ -1,13 +1,15 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from api.classes.agents import *
-from api.classes.map import Map
+from api.classes.pytanja.agents import *
+from api.classes.pytanja.map import Map as PytanjaMap
+from api.classes.pystolovina.agents import *
+from api.classes.pystolovina.map import Map as PyStolovinaMap
 
 
 @api_view(['Post'])
 def getPath(request):
-    map = Map(request.data["map"], request.data["agentPosition"],
-              request.data["finishPosition"])
+    map = PytanjaMap(request.data["map"], request.data["agentPosition"],
+                     request.data["finishPosition"])
     agent = request.data["agent"]
 
     if agent == 1:
@@ -36,6 +38,16 @@ def getPath(request):
         "price": price
     }
 
-    print("PRICE:", data["price"])
-
     return Response(data)
+
+
+@api_view(['Post'])
+def getMove(request):
+    print(request.data)
+    map = PyStolovinaMap(request.data["map"], request.data["userPosition"],
+                         request.data["aiPosition"])
+
+    agent = MinimaxAgent(map.aiPosition.row, map.aiPosition.col)
+    move = agent.getAgentMove(map)
+
+    return Response(move)

@@ -14,7 +14,7 @@ class Tile():
         elif type == "s":
             price = 1000
 
-        self.type = type
+        self.type = type # TODO: Ne moram ni da cuvam ovaj tip
         self.cost = price
         self.row = row
         self.col = col
