@@ -357,4 +357,4 @@ class MinimaxAgent(Agent):
                     bestMove = move
             return [bestValue, bestMove]
 
-        return minimax(map, True, 6)
+        return minimax(map, True, 4)
