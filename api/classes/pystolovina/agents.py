@@ -298,9 +298,9 @@ class MinimaxAgent(Agent):
             # print("MINIMAX")
             # Base case - the game is over, so we return the value of the board
             if isGameOver(map) or depth == 0:
-                return [evaluateMap(map), ""]
+                return [evaluateMap(map), None]
             # print("RUNNING")
-            bestMove = ""
+            bestMove = None
             if isMax == True:
                 bestValue = -float("Inf")
             else:
