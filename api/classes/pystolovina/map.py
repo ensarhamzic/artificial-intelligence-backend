@@ -9,23 +9,23 @@ class Tile():
         self.col = col
 
 
-class UserPosition():
-    def __init__(self, row, col):
+class Agent():
+    def __init__(self, id, row, col, type, tag):
+        self.id = id
         self.row = row
         self.col = col
-
-
-class AiPosition():
-    def __init__(self, row, col):
-        self.row = row
-        self.col = col
+        self.type = type
+        self.tag = tag
 
 
 class Map():
-    def __init__(self, map, userPosition, aiPosition):
-        self.userPosition = UserPosition(userPosition[0], userPosition[1])
-        self.aiPosition = AiPosition(
-            aiPosition[0], aiPosition[1])
+    def __init__(self, map, agents, agentTurnId):
+        ags = []
+        for ag in agents:
+            ags.append(Agent(ag["id"], ag["row"],
+                       ag["col"], ag["type"], ag["tag"]))
+        self.agents = ags
+        self.agentTurnId = agentTurnId
 
         tilesMap = []
         for i in range(len(map)):

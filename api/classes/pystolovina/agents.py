@@ -1,94 +1,89 @@
 from copy import deepcopy
 
+# TODO: Implementirati tajmer u algoritmima
+# TODO: Implementirati dinamicku max dubinu dobijenu od klinta
 
-def isGameOver(map):  # TODO: MNOGO LOS KOD, MORA DA SE OPTIMIZUJE
-    userRow = map.userPosition.row
-    userCol = map.userPosition.col
 
-    aiRow = map.aiPosition.row
-    aiCol = map.aiPosition.col
+# TODO: MNOGO LOS KOD, MORA DA SE OPTIMIZUJE
+# TODO: Za sad radi samo za 2 igraca, mora da se napravi i za vise igraca
+def isGameOver(map):
+    for ag in map.agents:
+        if ag.id != map.agentTurnId:
+            userRow = ag.row
+            userCol = ag.col
+        else:
+            aiRow = ag.row
+            aiCol = ag.col
 
     userGameOver = True
     aiGameOver = True
 
     if(userRow - 1 >= 0):
         if map.tiles[userRow - 1][userCol].isRoad and (userRow - 1 != aiRow or userCol != aiCol):
-            # print("U3")
             userGameOver = False
         if(userCol - 1 >= 0):
             if (map.tiles[userRow - 1][userCol - 1].isRoad and (userRow - 1 != aiRow or userCol - 1 != aiCol)):
-                # print("U1")
                 userGameOver = False
         if(userCol + 1 < len(map.tiles[0])):
             if map.tiles[userRow - 1][userCol + 1].isRoad and (userRow - 1 != aiRow or userCol + 1 != aiCol):
-                # print("U4")
                 userGameOver = False
 
     if userCol - 1 >= 0:
         if map.tiles[userRow][userCol - 1].isRoad and (userRow != aiRow or userCol - 1 != aiCol):
-            # print("U2")
             userGameOver = False
     if userCol + 1 < len(map.tiles[0]):
         if map.tiles[userRow][userCol + 1].isRoad and (userRow != aiRow or userCol + 1 != aiCol):
-            # print("U5")
             userGameOver = False
 
     if(userRow + 1 < len(map.tiles)):
         if map.tiles[userRow + 1][userCol].isRoad and (userRow + 1 != aiRow or userCol != aiCol):
-            # print("U7")
             userGameOver = False
         if(userCol - 1 >= 0):
             if map.tiles[userRow + 1][userCol - 1].isRoad and (userRow + 1 != aiRow or userCol - 1 != aiCol):
-                # print("U6")
                 userGameOver = False
         if(userCol + 1 < len(map.tiles[0])):
             if map.tiles[userRow + 1][userCol + 1].isRoad and (userRow + 1 != aiRow or userCol + 1 != aiCol):
-                # print("U8")
                 userGameOver = False
 
     if(aiRow - 1 >= 0):
         if map.tiles[aiRow - 1][aiCol].isRoad and (aiRow - 1 != userRow or aiCol != userCol):
-            # print("A3")
             aiGameOver = False
         if(aiCol - 1 >= 0):
             if (map.tiles[aiRow - 1][aiCol - 1].isRoad and (aiRow - 1 != userRow or aiCol - 1 != userCol)):
-                # print("A1")
                 aiGameOver = False
         if(aiCol + 1 < len(map.tiles[0])):
             if map.tiles[aiRow - 1][aiCol + 1].isRoad and (aiRow - 1 != userRow or aiCol + 1 != userCol):
-                # print("A4")
                 aiGameOver = False
 
     if aiCol - 1 >= 0:
         if map.tiles[aiRow][aiCol - 1].isRoad and (aiRow != userRow or aiCol - 1 != userCol):
-            # print("A2")
             aiGameOver = False
 
     if aiCol + 1 < len(map.tiles[0]):
         if map.tiles[aiRow][aiCol + 1].isRoad and (aiRow != userRow or aiCol + 1 != userCol):
-            # print("A5")
             aiGameOver = False
 
     if(aiRow + 1 < len(map.tiles)):
         if map.tiles[aiRow + 1][aiCol].isRoad and (aiRow + 1 != userRow or aiCol != userCol):
-            # print("A7")
             aiGameOver = False
         if(aiCol - 1 >= 0):
             if map.tiles[aiRow + 1][aiCol - 1].isRoad and (aiRow + 1 != userRow or aiCol - 1 != userCol):
-                # print("A6")
                 aiGameOver = False
         if(aiCol + 1 < len(map.tiles[0])):
             if map.tiles[aiRow + 1][aiCol + 1].isRoad and (aiRow + 1 != userRow or aiCol + 1 != userCol):
-                # print("A8")
                 aiGameOver = False
 
-    # print("USER", userGameOver, "AI", aiGameOver)
     return userGameOver or aiGameOver
+
+# TODO: Radi samo za 2 igraca, mora da se napravi i za vise igraca
 
 
 def evaluateMap(map):
-    userPosition = map.userPosition
-    aiPosition = map.aiPosition
+    for ag in map.agents:
+        if ag.id != map.agentTurnId:
+            userPosition = ag
+        else:
+            aiPosition = ag
 
     tiles = map.tiles
 
@@ -158,32 +153,23 @@ def evaluateMap(map):
     visited = []
     queue = []
     aiTiles = bfs(tiles[aiPosition.row][aiPosition.col])
-    # print("AITILES", aiTiles, "USERTILES", userTiles)
-
-    # print("_____________________")
-    # print("USER:", map.userPosition.row, map.userPosition.col)
-    # print("AI:", map.aiPosition.row, map.aiPosition.col)
-    # for i in range(len(map.tiles)):
-    #     row = ""
-    #     for j in range(len(map.tiles[i])):
-    #         if map.tiles[i][j].isRoad:
-    #             row += "r "
-    #         else:
-    #             row += "h "
-    #     print(row)
-    # print("AI TILES:", aiTiles)
-    # print("USER TILES:", userTiles)
-    # print("_____________________")
 
     return aiTiles - userTiles
+
+# TODO: Radi samo za 2 igraca, mora da se napravi i za vise igraca
+# TODO: Mora da se optimizuje
 
 
 def availableMoves(map, player):
     # returns list of moves sorted like: North, NorthEast, East, SouthEast, South, SouthWest, West, NorthWest
     moves = []
     tiles = map.tiles
-    userPosition = map.userPosition
-    aiPosition = map.aiPosition
+
+    for ag in map.agents:
+        if ag.id != map.agentTurnId:
+            userPosition = ag
+        else:
+            aiPosition = ag
 
     if player.row - 1 >= 0:
         if tiles[player.row - 1][player.col].isRoad:
@@ -253,31 +239,9 @@ def availableMoves(map, player):
 
 
 def makeMove(map, move, player):
-    print("MAKEMOVESTART", player.row, player.col, "MOVE:", move)
     map.tiles[player.row][player.col].isRoad = False
-
-    print("_____________________")
-    print("USER:", map.userPosition.row, map.userPosition.col)
-    print("AI:", map.aiPosition.row, map.aiPosition.col)
-    for i in range(len(map.tiles)):
-        row = ""
-        for j in range(len(map.tiles[i])):
-            if map.tiles[i][j].isRoad:
-                row += "r "
-            else:
-                row += "h "
-        print(row)
-    # print("AI TILES:", aiTiles)
-    # print("USER TILES:", userTiles)
     player.row = move[0]
     player.col = move[1]
-    print("USER:", map.userPosition.row, map.userPosition.col)
-    print("AI:", map.aiPosition.row, map.aiPosition.col)
-    print("MAKEMOVEEND", player.row, player.col, "MOVE:", move)
-    print("_____________________")
-    print("")
-    print("")
-    print("")
 
 
 class Agent():
@@ -295,11 +259,10 @@ class MinimaxAgent(Agent):
 
     def getAgentMove(self, map):
         def minimax(map, isMax, depth):
-            # print("MINIMAX")
+
             # Base case - the game is over, so we return the value of the board
             if isGameOver(map) or depth == 0:
                 return [evaluateMap(map), None]
-            # print("RUNNING")
             bestMove = None
             if isMax == True:
                 bestValue = -float("Inf")
@@ -307,47 +270,32 @@ class MinimaxAgent(Agent):
                 bestValue = float("Inf")
 
             player = None
-            if isMax:
-                player = map.aiPosition
-            else:
-                player = map.userPosition
+            for agent in map.agents:
+                if isMax:
+                    if agent.id == map.agentTurnId:
+                        player = agent
+                        break
+                else:
+                    if agent.id != map.agentTurnId:
+                        player = agent
+                        break
+            print("PLAYER", (player.row, player.col))
 
             for move in availableMoves(map, player):
                 newMap = deepcopy(map)
-                playerOnMove = None
-                if isMax:
-                    playerOnMove = newMap.aiPosition
-                else:
-                    playerOnMove = newMap.userPosition
-                print("")
-                print("")
-                print("")
-                print("PRE POTEZA")
-                print("ISMAX:", isMax)
-                print("MOVE", move)
-                print("USER:", newMap.userPosition.row, newMap.userPosition.col)
-                print("AI:", newMap.aiPosition.row, newMap.aiPosition.col)
-                if(newMap.tiles[playerOnMove.row][playerOnMove.col].isRoad == False):
-                    print("NE ZNAM STO OVO SE DESILO")
-                for i in range(len(newMap.tiles)):
-                    row = ""
-                    for j in range(len(newMap.tiles[i])):
-                        if newMap.tiles[i][j].isRoad:
-                            row += "r "
-                        else:
-                            row += "h "
-                    print(row)
-                # print("AI TILES:", aiTiles)
-                # print("USER TILES:", userTiles)
-                print("MAKE MOVE BEFORE", playerOnMove.row,
-                      playerOnMove.col, "MOVE:", move)
-                makeMove(newMap, move, playerOnMove)
-                print("MAKE MOVE AFTER", playerOnMove.row,
-                      playerOnMove.col, "MOVE:", move)
-                print("")
-                print("")
-                print("")
 
+                playerOnMove = None
+                for agent in newMap.agents:  # TODO: Moze mozda da se optimizuje, jer uvek ima samo 2 igraca jer je minimax
+                    if isMax:
+                        if agent.id == newMap.agentTurnId:
+                            playerOnMove = agent
+                            break
+                    else:
+                        if agent.id != newMap.agentTurnId:
+                            playerOnMove = agent
+                            break
+
+                makeMove(newMap, move, playerOnMove)
                 hypotheticalValue = minimax(newMap, not isMax, depth - 1)[0]
                 if isMax == True and hypotheticalValue > bestValue:
                     bestValue = hypotheticalValue
@@ -357,4 +305,4 @@ class MinimaxAgent(Agent):
                     bestMove = move
             return [bestValue, bestMove]
 
-        return minimax(map, True, 4)
+        return minimax(map, True, 5)
