@@ -1,4 +1,5 @@
 from copy import deepcopy
+import time
 
 # TODO: Implementirati tajmer u algoritmima
 # TODO: Implementirati dinamicku max dubinu dobijenu od klinta
@@ -258,10 +259,12 @@ class MinimaxAgent(Agent):
         super().__init__(row, col)
 
     def getAgentMove(self, map):
-        def minimax(map, isMax, depth):
+        startTime = time.time()
 
+        def minimax(map, isMax, depth):
+            print(time.time() - startTime)
             # Base case - the game is over, so we return the value of the board
-            if isGameOver(map) or depth == 0:
+            if isGameOver(map) or depth == 0 or time.time() - startTime > map.timeToThink:
                 return [evaluateMap(map), None]
             bestMove = None
             if isMax == True:
@@ -305,4 +308,4 @@ class MinimaxAgent(Agent):
                     bestMove = move
             return [bestValue, bestMove]
 
-        return minimax(map, True, 5)
+        return minimax(map, True, map.maxDepth)

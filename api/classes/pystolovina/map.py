@@ -19,13 +19,15 @@ class Agent():
 
 
 class Map():
-    def __init__(self, map, agents, agentTurnId):
+    def __init__(self, map, agents, agentTurnId, maxDepth, timeToThink):
         ags = []
         for ag in agents:
             ags.append(Agent(ag["id"], ag["row"],
                        ag["col"], ag["type"], ag["tag"]))
         self.agents = ags
         self.agentTurnId = agentTurnId
+        self.maxDepth = maxDepth
+        self.timeToThink = timeToThink
 
         tilesMap = []
         for i in range(len(map)):

@@ -47,13 +47,11 @@ def getMove(request):
     rawMap = request.data["map"]
     agents = request.data["agents"]
     agentTurnId = request.data["agentTurnId"]
-
-    print(agents)
-    print(rawMap)
-    print(agentTurnId)
+    maxDepth = request.data["maxDepth"]
+    timeToThink = request.data["timeToThink"]
 
     map = PyStolovinaMap(
-        rawMap, agents, agentTurnId)
+        rawMap, agents, agentTurnId, maxDepth, timeToThink)
 
     agentOnTurn = None
 
