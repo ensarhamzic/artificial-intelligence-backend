@@ -50,6 +50,9 @@ def getMove(request):
     maxDepth = request.data["maxDepth"]
     timeToThink = request.data["timeToThink"]
 
+    for key, value in request.data.items():
+        print(key, value)
+
     map = PyStolovinaMap(
         rawMap, agents, agentTurnId, maxDepth, timeToThink)
 
@@ -75,5 +78,5 @@ def getMove(request):
         return Response({"error": "Invalid agent algorithm"}, status=status.HTTP_400_BAD_REQUEST)
 
     move = agent.getAgentMove(map)
-    print(move)
+    # print(move)
     return Response(move)

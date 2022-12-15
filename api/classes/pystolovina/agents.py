@@ -154,11 +154,127 @@ def evaluateMap(map):
     visited = []
     queue = []
     aiTiles = bfs(tiles[aiPosition.row][aiPosition.col])
-
+    print(aiTiles - userTiles)
     return aiTiles - userTiles
 
-# TODO: Radi samo za 2 igraca, mora da se napravi i za vise igraca
-# TODO: Mora da se optimizuje
+# TODO: POKUSAJ BOLJE EVALUACIONE FUNKCIJE, KOJA UZIMA NAJDUZU PUTANJU KOJOM AI MOZE DA SE KRECE, I NAJDUZU PUTANJU KOJOM USER MOZE DA SE KRECE, I ONDA IZRAZAVA RAZLIKU U BROJU POLJA KOJA SU NA TAKVIM PUTANJAMA
+# def evaluateMap(map):
+#     for ag in map.agents:
+#         if ag.id != map.agentTurnId:
+#             userPosition = ag
+#         else:
+#             aiPosition = ag
+
+#     tiles = map.tiles
+
+#     userCords = (userPosition.row, userPosition.col)
+#     aiCords = (aiPosition.row, aiPosition.col)
+
+#     neighborDict = {}  # empty dictionary that we need to fill
+#     # key => (i, j) -> i - row, j - column
+#     # value => array of neighbors without tiles with holes
+#     for i in range(len(tiles)):
+#         for j in range(len(tiles[i])):
+#             neighbors = []
+
+#             if i-1 >= 0:
+#                 if tiles[i-1][j].isRoad and (i-1, j) != userCords and (i-1, j) != aiCords:
+#                     neighbors.append(tiles[i-1][j])
+#                 if j-1 >= 0:
+#                     if tiles[i - 1][j - 1].isRoad and (i-1, j - 1) != userCords and (i-1, j - 1) != aiCords:
+#                         neighbors.append(tiles[i - 1][j - 1])
+#                 if j + 1 < len(tiles[0]):
+#                     if tiles[i - 1][j + 1].isRoad and (i-1, j + 1) != userCords and (i-1, j + 1) != aiCords:
+#                         neighbors.append(tiles[i - 1][j + 1])
+
+#             if j - 1 >= 0:
+#                 if tiles[i][j - 1].isRoad and (i, j - 1) != userCords and (i, j - 1) != aiCords:
+#                     neighbors.append(tiles[i][j - 1])
+#             if j + 1 < len(tiles[0]):
+#                 if tiles[i][j + 1].isRoad and (i, j + 1) != userCords and (i, j + 1) != aiCords:
+#                     neighbors.append(tiles[i][j + 1])
+
+#             if i+1 < len(tiles):
+#                 if tiles[i + 1][j].isRoad and (i+1, j) != userCords and (i+1, j) != aiCords:
+#                     neighbors.append(tiles[i + 1][j])
+#                 if j - 1 >= 0:
+#                     if tiles[i + 1][j - 1].isRoad and (i+1, j - 1) != userCords and (i+1, j - 1) != aiCords:
+#                         neighbors.append(tiles[i + 1][j - 1])
+#                 if j + 1 < len(tiles[0]):
+#                     if tiles[i + 1][j + 1].isRoad and (i+1, j + 1) != userCords and (i+1, j + 1) != aiCords:
+#                         neighbors.append(tiles[i + 1][j + 1])
+
+#             neighborDict[(i, j)] = neighbors
+
+    # Create a list to keep track of the longest path found so far
+    # longest_path = []
+
+    # # Define a recursive function to explore each node and its neighbors
+    # def explore(node, path, visited):
+    #     global longest_path
+    #     nodePosition = (node.row, node.col)
+    #     # Add the current node to the path
+    #     path.append(node)
+
+    #     # Mark the current node as visited
+    #     visited.add(nodePosition)
+
+    #     # If the current node is a leaf node, update the longest path
+    #     if len(neighborDict[nodePosition]) == 0:
+    #         if len(path) > len(longest_path):
+    #             longest_path = path
+
+    #     # Otherwise, explore each of the node's unvisited neighbors
+    #     else:
+    #         for neighbor in neighborDict[nodePosition]:
+    #             if neighbor not in visited:
+    #                 explore(neighbor, path, visited)
+
+    #     # Remove the current node from the path and mark it as unvisited
+    #     path.pop()
+    #     visited.remove(nodePosition)
+
+    # def explore(node, path, visited):
+    #     longestPath = []
+    #     stack = []
+    #     stack.append((node, path, visited))
+
+    #     while stack:
+    #         node, path, visited = stack.pop()
+    #         nodePosition = (node.row, node.col)
+
+    #         # Add the current node to the path
+    #         path.append(node)
+
+    #         # Mark the current node as visited
+    #         visited.add(nodePosition)
+
+    #         # If the current node is a leaf node, update tshe longest path
+    #         if len(neighborDict[nodePosition]) == 0:
+    #             if len(path) > len(longestPath):
+    #                 longestPath = path
+
+    #         # Otherwise, explore each of the node's unvisited neighbors
+    #         else:
+    #             for neighbor in neighborDict[nodePosition]:
+    #                 if (neighbor.row, neighbor.col) not in visited:
+    #                     print(node.row, node.col)
+    #                     stack.append((neighbor, path, visited.copy()))
+
+    #         # Remove the current node from the path and mark it as unvisited
+    #         path.pop()
+    #         # visited.remove(nodePosition)
+
+    #     return longestPath
+
+    # # Start the depth-first search at the source node
+    # aiLongestPath = len(
+    #     explore(tiles[aiPosition.row][aiPosition.col], [], set()))
+
+    # userLongestPath = len(explore(
+    #     tiles[userPosition.row][userPosition.col], [], set()))
+
+    # return aiLongestPath - userLongestPath
 
 
 def availableMoves(map, player):
@@ -240,9 +356,32 @@ def availableMoves(map, player):
 
 
 def makeMove(map, move, player):
+    print("___________________________")
+    for agent in map.agents:
+        if agent.id != player.id:
+            print("Player " + str(agent.id) + " is at " +
+                  str(agent.row) + " " + str(agent.col))
+    print("Player " + str(player.id) + " moved from " +
+          str(player.row) + " " + str(player.col))
+
+    # -------------------------------------------------
+
     map.tiles[player.row][player.col].isRoad = False
     player.row = move[0]
     player.col = move[1]
+
+    # -------------------------------------------------
+
+    print("Player " + str(player.id) + " moved to " +
+          str(player.row) + " " + str(player.col))
+    for row in map.tiles:
+        for tile in row:
+            if tile.isRoad:
+                print("1", end=" ")
+            else:
+                print("0", end=" ")
+        print("")
+    print("___________________________")
 
 
 class Agent():
@@ -261,8 +400,11 @@ class MinimaxAgent(Agent):
     def getAgentMove(self, map):
         startTime = time.time()
 
+        alg = []
+
         def minimax(map, isMax, depth):
-            print(time.time() - startTime)
+            alg.append(1)
+            print("NUMBER:", len(alg))
             # Base case - the game is over, so we return the value of the board
             if isGameOver(map) or depth == 0 or time.time() - startTime > map.timeToThink:
                 return [evaluateMap(map), None]
@@ -282,7 +424,6 @@ class MinimaxAgent(Agent):
                     if agent.id != map.agentTurnId:
                         player = agent
                         break
-            print("PLAYER", (player.row, player.col))
 
             for move in availableMoves(map, player):
                 newMap = deepcopy(map)
@@ -308,4 +449,13 @@ class MinimaxAgent(Agent):
                     bestMove = move
             return [bestValue, bestMove]
 
+        # dep = 0
+        # print("AGENT 1 ID", map.agents[0].id)
+        # print("AGENT 2 TURN ID", map.agents[1].id)
+        # if map.agentTurnId == 1:
+        #     dep = 1
+        # else:
+        #     dep = 6
+        # print("DEPTH", dep)
+        # return minimax(map, True, dep)
         return minimax(map, True, map.maxDepth)
