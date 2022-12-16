@@ -1,8 +1,7 @@
 from copy import deepcopy
 import time
 
-# TODO: Implementirati tajmer u algoritmima
-# TODO: Implementirati dinamicku max dubinu dobijenu od klinta
+# TODO: NAPRAVITI DA AKO JE PORAZ NEIZBEZNA VRACA SLEDECI KORAK U REDOSLEDU DEFINISANOM U PROJEKTU (GORE, GORE-DESNO, DESNO ...)
 
 
 # TODO: MNOGO LOS KOD, MORA DA SE OPTIMIZUJE
@@ -356,13 +355,13 @@ def availableMoves(map, player):
 
 
 def makeMove(map, move, player):
-    print("___________________________")
-    for agent in map.agents:
-        if agent.id != player.id:
-            print("Player " + str(agent.id) + " is at " +
-                  str(agent.row) + " " + str(agent.col))
-    print("Player " + str(player.id) + " moved from " +
-          str(player.row) + " " + str(player.col))
+    # print("___________________________")
+    # for agent in map.agents:
+    #     if agent.id != player.id:
+    #         print("Player " + str(agent.id) + " is at " +
+    #               str(agent.row) + " " + str(agent.col))
+    # print("Player " + str(player.id) + " moved from " +
+    #       str(player.row) + " " + str(player.col))
 
     # -------------------------------------------------
 
@@ -372,16 +371,16 @@ def makeMove(map, move, player):
 
     # -------------------------------------------------
 
-    print("Player " + str(player.id) + " moved to " +
-          str(player.row) + " " + str(player.col))
-    for row in map.tiles:
-        for tile in row:
-            if tile.isRoad:
-                print("1", end=" ")
-            else:
-                print("0", end=" ")
-        print("")
-    print("___________________________")
+    # print("Player " + str(player.id) + " moved to " +
+    #       str(player.row) + " " + str(player.col))
+    # for row in map.tiles:
+    #     for tile in row:
+    #         if tile.isRoad:
+    #             print("1", end=" ")
+    #         else:
+    #             print("0", end=" ")
+    #     print("")
+    # print("___________________________")
 
 
 class Agent():
@@ -400,13 +399,9 @@ class MinimaxAgent(Agent):
     def getAgentMove(self, map):
         startTime = time.time()
 
-        alg = []
-
         def minimax(map, isMax, depth):
-            alg.append(1)
-            print("NUMBER:", len(alg))
             # Base case - the game is over, so we return the value of the board
-            if isGameOver(map) or depth == 0 or time.time() - startTime > map.timeToThink:
+            if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
                 return [evaluateMap(map), None]
             bestMove = None
             if isMax == True:
@@ -429,7 +424,7 @@ class MinimaxAgent(Agent):
                 newMap = deepcopy(map)
 
                 playerOnMove = None
-                for agent in newMap.agents:  # TODO: Moze mozda da se optimizuje, jer uvek ima samo 2 igraca jer je minimax
+                for agent in newMap.agents:
                     if isMax:
                         if agent.id == newMap.agentTurnId:
                             playerOnMove = agent
@@ -449,13 +444,66 @@ class MinimaxAgent(Agent):
                     bestMove = move
             return [bestValue, bestMove]
 
-        # dep = 0
-        # print("AGENT 1 ID", map.agents[0].id)
-        # print("AGENT 2 TURN ID", map.agents[1].id)
-        # if map.agentTurnId == 1:
-        #     dep = 1
-        # else:
-        #     dep = 6
-        # print("DEPTH", dep)
-        # return minimax(map, True, dep)
         return minimax(map, True, map.maxDepth)
+
+
+class MinimaxABAgent(Agent):
+    def __init__(self, row, col):
+        super().__init__(row, col)
+
+    def getAgentMove(self, map):
+        startTime = time.time()
+
+        def minimaxab(map, isMax, depth, alpha, beta):
+            # Base case - the game is over, so we return the value of the board
+            if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
+                return [evaluateMap(map), None, alpha, beta]
+            bestMove = None
+            if isMax == True:
+                bestValue = -float("Inf")
+            else:
+                bestValue = float("Inf")
+
+            player = None
+
+            for agent in map.agents:
+                if isMax:
+                    if agent.id == map.agentTurnId:
+                        player = agent
+                        break
+                else:
+                    if agent.id != map.agentTurnId:
+                        player = agent
+                        break
+
+            for move in availableMoves(map, player):
+                newMap = deepcopy(map)
+
+                playerOnMove = None
+                for agent in newMap.agents:
+                    if isMax:
+                        if agent.id == newMap.agentTurnId:
+                            playerOnMove = agent
+                            break
+                    else:
+                        if agent.id != newMap.agentTurnId:
+                            playerOnMove = agent
+                            break
+
+                makeMove(newMap, move, playerOnMove)
+                hypotheticalValue = minimaxab(
+                    newMap, not isMax, depth - 1, alpha, beta)[0]
+                if isMax == True and hypotheticalValue > bestValue:
+                    bestValue = hypotheticalValue
+                    bestMove = move
+                    alpha = max(alpha, bestValue)
+                if isMax == False and hypotheticalValue < bestValue:
+                    bestValue = hypotheticalValue
+                    bestMove = move
+                    beta = min(beta, bestValue)
+                if alpha > beta:
+                    print("AAA")
+                    break
+            return [bestValue, bestMove, alpha, beta]
+
+        return minimaxab(map, True, map.maxDepth, -float("Inf"), float("Inf"))
