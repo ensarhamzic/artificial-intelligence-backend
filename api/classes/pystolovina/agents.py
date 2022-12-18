@@ -1,5 +1,6 @@
 from copy import deepcopy
 import time
+import random
 
 # TODO: NAPRAVITI DA AKO JE PORAZ NEIZBEZNA VRACA SLEDECI KORAK U REDOSLEDU DEFINISANOM U PROJEKTU (GORE, GORE-DESNO, DESNO ...)
 
@@ -507,3 +508,82 @@ class MinimaxABAgent(Agent):
             return [bestValue, bestMove, alpha, beta]
 
         return minimaxab(map, True, map.maxDepth, -float("Inf"), float("Inf"))
+
+
+class ExpectimaxAgent(Agent):
+    def __init__(self, row, col):
+        super().__init__(row, col)
+
+    def getAgentMove(self, map):
+        startTime = time.time()
+
+        def expectimax(map, isMax, depth):
+            if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
+                return [evaluateMap(map), None]
+
+            for agent in map.agents:
+                if isMax:
+                    if agent.id == map.agentTurnId:
+                        player = agent
+                        break
+                else:
+                    if agent.id != map.agentTurnId:
+                        player = agent
+                        break
+
+            bestMove = None
+            if isMax:
+                bestScore = -float("Inf")
+                for move in availableMoves(map, player):
+                    newMap = deepcopy(map)
+
+                    playerOnMove = None
+                    for agent in newMap.agents:
+                        if isMax:
+                            if agent.id == newMap.agentTurnId:
+                                playerOnMove = agent
+                                break
+
+                    makeMove(newMap, move, playerOnMove)
+                    score = expectimax(newMap, False, depth - 1)[0]
+                    bestScore = max(score, bestScore)
+                    bestMove = move
+                return [bestScore, bestMove]
+            else:
+                totalScore = 0
+                moves = availableMoves(map, player)
+                for move in moves:
+                    newMap = deepcopy(map)
+
+                    playerOnMove = None
+                    for agent in newMap.agents:
+                        if not isMax:
+                            if agent.id != newMap.agentTurnId:
+                                playerOnMove = agent
+                                break
+
+                    makeMove(newMap, move, playerOnMove)
+                    score = expectimax(newMap, True, depth - 1)[0]
+                    totalScore += score
+
+                return [totalScore / len(moves), None]
+
+        return expectimax(map, True, map.maxDepth)
+
+
+class RandomAgent(Agent):
+    def __init__(self, row, col):
+        super().__init__(row, col)
+
+    def getAgentMove(self, map):
+        for agent in map.agents:
+            if agent.id == map.agentTurnId:
+                player = agent
+                break
+
+        moves = availableMoves(map, player)
+
+        if len(moves) == 0:
+            return [0, None]
+
+        return [0, random.choice(moves)]

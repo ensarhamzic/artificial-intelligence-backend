@@ -76,7 +76,22 @@ def getMove(request):
             if len(agents) != 2:
                 agentAlgorithmValid = False
             agent = MinimaxABAgent(agentOnTurn.row, agentOnTurn.col)
-    # TODO: add other agents
+        if agentOnTurn.tag == 3:
+            if len(agents) != 2:
+                agentAlgorithmValid = False
+            agent = ExpectimaxAgent(agentOnTurn.row, agentOnTurn.col)
+        if agentOnTurn.tag == 4:
+            pass
+
+    elif agentOnTurn.type == "teacher":
+        if agentOnTurn.tag == 1:
+            pass
+        if agentOnTurn.tag == 2:
+            agent = RandomAgent(agentOnTurn.row, agentOnTurn.col)
+        if agentOnTurn.tag == 3:
+            pass
+        if agentOnTurn.tag == 4:
+            pass
 
     if not agentAlgorithmValid:
         return Response({"error": "Invalid agent algorithm"}, status=status.HTTP_400_BAD_REQUEST)
@@ -84,8 +99,9 @@ def getMove(request):
     move = agent.getAgentMove(map)
 
     # -float("Inf") and float["inf"] can not be returned as json, so some conversion must be done
-    if move[2] < -1000:
-        move[2] = -1000
-    if move[3] > 1000:
-        move[3] = 1000
+    if move != None and len(move) > 2:
+        if move[2] < -1000:
+            move[2] = -1000
+        if move[3] > 1000:
+            move[3] = 1000
     return Response(move)
