@@ -531,42 +531,41 @@ class ExpectimaxAgent(Agent):
                         player = agent
                         break
 
-            bestMove = None
             if isMax:
                 bestScore = -float("Inf")
+                bestMove = None
                 for move in availableMoves(map, player):
                     newMap = deepcopy(map)
 
                     playerOnMove = None
                     for agent in newMap.agents:
-                        if isMax:
-                            if agent.id == newMap.agentTurnId:
-                                playerOnMove = agent
-                                break
+                        if agent.id == newMap.agentTurnId:
+                            playerOnMove = agent
+                            break
 
                     makeMove(newMap, move, playerOnMove)
                     score = expectimax(newMap, False, depth - 1)[0]
-                    bestScore = max(score, bestScore)
-                    bestMove = move
+                    if (score > bestScore):
+                        bestScore = score
+                        bestMove = move
                 return [bestScore, bestMove]
             else:
-                totalScore = 0
-                moves = availableMoves(map, player)
-                for move in moves:
+                scores = []
+                moves = []
+                for move in availableMoves(map, player):
                     newMap = deepcopy(map)
 
                     playerOnMove = None
                     for agent in newMap.agents:
-                        if not isMax:
-                            if agent.id != newMap.agentTurnId:
-                                playerOnMove = agent
-                                break
+                        if agent.id != newMap.agentTurnId:
+                            playerOnMove = agent
+                            break
 
                     makeMove(newMap, move, playerOnMove)
-                    score = expectimax(newMap, True, depth - 1)[0]
-                    totalScore += score
-
-                return [totalScore / len(moves), None]
+                    result = expectimax(newMap, True, depth - 1)
+                    scores.append(result[0])
+                    moves.append(result[1])
+                return [sum(scores) / len(scores), random.choice(moves)]
 
         return expectimax(map, True, map.maxDepth)
 
