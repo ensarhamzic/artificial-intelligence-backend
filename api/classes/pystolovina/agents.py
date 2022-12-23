@@ -2,79 +2,133 @@ from copy import deepcopy
 import time
 import random
 
-# TODO: NAPRAVITI DA AKO JE PORAZ NEIZBEZNA VRACA SLEDECI KORAK U REDOSLEDU DEFINISANOM U PROJEKTU (GORE, GORE-DESNO, DESNO ...)
+# TODO: NAPRAVITI DA AKO JE PORAZ NEIZBEZAN VRACA SLEDECI KORAK U REDOSLEDU DEFINISANOM U PROJEKTU (GORE, GORE-DESNO, DESNO ...)
 
 
 # TODO: MNOGO LOS KOD, MORA DA SE OPTIMIZUJE
 # TODO: Za sad radi samo za 2 igraca, mora da se napravi i za vise igraca
 def isGameOver(map):
+    counter = 0
+
     for ag in map.agents:
-        if ag.id != map.agentTurnId:
-            userRow = ag.row
-            userCol = ag.col
-        else:
-            aiRow = ag.row
-            aiCol = ag.col
+        if len(availableMoves(map, ag)) == 0:
+            counter += 1
 
-    userGameOver = True
-    aiGameOver = True
+    if counter >= len(map.agents) - 1:
+        return True
+    else:
+        return False
 
-    if(userRow - 1 >= 0):
-        if map.tiles[userRow - 1][userCol].isRoad and (userRow - 1 != aiRow or userCol != aiCol):
-            userGameOver = False
-        if(userCol - 1 >= 0):
-            if (map.tiles[userRow - 1][userCol - 1].isRoad and (userRow - 1 != aiRow or userCol - 1 != aiCol)):
-                userGameOver = False
-        if(userCol + 1 < len(map.tiles[0])):
-            if map.tiles[userRow - 1][userCol + 1].isRoad and (userRow - 1 != aiRow or userCol + 1 != aiCol):
-                userGameOver = False
+    # for every agent in map.agents, check if there is a road tile in the 8 tiles around it and if any agent is on that tile
+    # counter = 0
+    # for ag in map.agents:
+    #     if ag.row - 1 >= 0:
+    #         if map.tiles[ag.row - 1][ag.col].isRoad and not any(
+    #                 agent.row == ag.row - 1 and agent.col == ag.col for agent in map.agents):
+    #             counter += 1
+    #         if ag.col - 1 >= 0:
+    #             if map.tiles[ag.row - 1][ag.col - 1].isRoad and not any(
+    #                     agent.row == ag.row - 1 and agent.col == ag.col - 1 for agent in map.agents):
+    #                 counter += 1
+    #         if ag.col + 1 < len(map.tiles[0]):
+    #             if map.tiles[ag.row - 1][ag.col + 1].isRoad and not any(
+    #                     agent.row == ag.row - 1 and agent.col == ag.col + 1 for agent in map.agents):
+    #                 counter += 1
 
-    if userCol - 1 >= 0:
-        if map.tiles[userRow][userCol - 1].isRoad and (userRow != aiRow or userCol - 1 != aiCol):
-            userGameOver = False
-    if userCol + 1 < len(map.tiles[0]):
-        if map.tiles[userRow][userCol + 1].isRoad and (userRow != aiRow or userCol + 1 != aiCol):
-            userGameOver = False
+    #     if ag.col - 1 >= 0:
+    #         if map.tiles[ag.row][ag.col - 1].isRoad and not any(
+    #                 agent.row == ag.row and agent.col == ag.col - 1 for agent in map.agents):
+    #             counter += 1
+    #     if ag.col + 1 < len(map.tiles[0]):
+    #         if map.tiles[ag.row][ag.col + 1].isRoad and not any(
+    #                 agent.row == ag.row and agent.col == ag.col + 1 for agent in map.agents):
+    #             counter += 1
 
-    if(userRow + 1 < len(map.tiles)):
-        if map.tiles[userRow + 1][userCol].isRoad and (userRow + 1 != aiRow or userCol != aiCol):
-            userGameOver = False
-        if(userCol - 1 >= 0):
-            if map.tiles[userRow + 1][userCol - 1].isRoad and (userRow + 1 != aiRow or userCol - 1 != aiCol):
-                userGameOver = False
-        if(userCol + 1 < len(map.tiles[0])):
-            if map.tiles[userRow + 1][userCol + 1].isRoad and (userRow + 1 != aiRow or userCol + 1 != aiCol):
-                userGameOver = False
+    #     if ag.row + 1 < len(map.tiles):
+    #         if map.tiles[ag.row + 1][ag.col].isRoad and not any(
+    #                 agent.row == ag.row + 1 and agent.col == ag.col for agent in map.agents):
+    #             counter += 1
+    #         if ag.col - 1 >= 0:
+    #             if map.tiles[ag.row + 1][ag.col - 1].isRoad and not any(
+    #                     agent.row == ag.row + 1 and agent.col == ag.col - 1 for agent in map.agents):
+    #                 counter += 1
+    #         if ag.col + 1 < len(map.tiles[0]):
+    #             if map.tiles[ag.row + 1][ag.col + 1].isRoad and not any(
+    #                     agent.row == ag.row + 1 and agent.col == ag.col + 1 for agent in map.agents):
+    #                 counter += 1
 
-    if(aiRow - 1 >= 0):
-        if map.tiles[aiRow - 1][aiCol].isRoad and (aiRow - 1 != userRow or aiCol != userCol):
-            aiGameOver = False
-        if(aiCol - 1 >= 0):
-            if (map.tiles[aiRow - 1][aiCol - 1].isRoad and (aiRow - 1 != userRow or aiCol - 1 != userCol)):
-                aiGameOver = False
-        if(aiCol + 1 < len(map.tiles[0])):
-            if map.tiles[aiRow - 1][aiCol + 1].isRoad and (aiRow - 1 != userRow or aiCol + 1 != userCol):
-                aiGameOver = False
+    # if counter == 0:
+    #     return True
+    # else:
+    #     return False
 
-    if aiCol - 1 >= 0:
-        if map.tiles[aiRow][aiCol - 1].isRoad and (aiRow != userRow or aiCol - 1 != userCol):
-            aiGameOver = False
+    # for ag in map.agents:
+    #     if ag.id != map.agentTurnId:
+    #         userRow = ag.row
+    #         userCol = ag.col
+    #     else:
+    #         aiRow = ag.row
+    #         aiCol = ag.col
 
-    if aiCol + 1 < len(map.tiles[0]):
-        if map.tiles[aiRow][aiCol + 1].isRoad and (aiRow != userRow or aiCol + 1 != userCol):
-            aiGameOver = False
+    # userGameOver = True
+    # aiGameOver = True
 
-    if(aiRow + 1 < len(map.tiles)):
-        if map.tiles[aiRow + 1][aiCol].isRoad and (aiRow + 1 != userRow or aiCol != userCol):
-            aiGameOver = False
-        if(aiCol - 1 >= 0):
-            if map.tiles[aiRow + 1][aiCol - 1].isRoad and (aiRow + 1 != userRow or aiCol - 1 != userCol):
-                aiGameOver = False
-        if(aiCol + 1 < len(map.tiles[0])):
-            if map.tiles[aiRow + 1][aiCol + 1].isRoad and (aiRow + 1 != userRow or aiCol + 1 != userCol):
-                aiGameOver = False
+    # if (userRow - 1 >= 0):
+    #     if map.tiles[userRow - 1][userCol].isRoad and (userRow - 1 != aiRow or userCol != aiCol):
+    #         userGameOver = False
+    #     if (userCol - 1 >= 0):
+    #         if (map.tiles[userRow - 1][userCol - 1].isRoad and (userRow - 1 != aiRow or userCol - 1 != aiCol)):
+    #             userGameOver = False
+    #     if (userCol + 1 < len(map.tiles[0])):
+    #         if map.tiles[userRow - 1][userCol + 1].isRoad and (userRow - 1 != aiRow or userCol + 1 != aiCol):
+    #             userGameOver = False
 
-    return userGameOver or aiGameOver
+    # if userCol - 1 >= 0:
+    #     if map.tiles[userRow][userCol - 1].isRoad and (userRow != aiRow or userCol - 1 != aiCol):
+    #         userGameOver = False
+    # if userCol + 1 < len(map.tiles[0]):
+    #     if map.tiles[userRow][userCol + 1].isRoad and (userRow != aiRow or userCol + 1 != aiCol):
+    #         userGameOver = False
+
+    # if (userRow + 1 < len(map.tiles)):
+    #     if map.tiles[userRow + 1][userCol].isRoad and (userRow + 1 != aiRow or userCol != aiCol):
+    #         userGameOver = False
+    #     if (userCol - 1 >= 0):
+    #         if map.tiles[userRow + 1][userCol - 1].isRoad and (userRow + 1 != aiRow or userCol - 1 != aiCol):
+    #             userGameOver = False
+    #     if (userCol + 1 < len(map.tiles[0])):
+    #         if map.tiles[userRow + 1][userCol + 1].isRoad and (userRow + 1 != aiRow or userCol + 1 != aiCol):
+    #             userGameOver = False
+
+    # if (aiRow - 1 >= 0):
+    #     if map.tiles[aiRow - 1][aiCol].isRoad and (aiRow - 1 != userRow or aiCol != userCol):
+    #         aiGameOver = False
+    #     if (aiCol - 1 >= 0):
+    #         if (map.tiles[aiRow - 1][aiCol - 1].isRoad and (aiRow - 1 != userRow or aiCol - 1 != userCol)):
+    #             aiGameOver = False
+    #     if (aiCol + 1 < len(map.tiles[0])):
+    #         if map.tiles[aiRow - 1][aiCol + 1].isRoad and (aiRow - 1 != userRow or aiCol + 1 != userCol):
+    #             aiGameOver = False
+
+    # if aiCol - 1 >= 0:
+    #     if map.tiles[aiRow][aiCol - 1].isRoad and (aiRow != userRow or aiCol - 1 != userCol):
+    #         aiGameOver = False
+
+    # if aiCol + 1 < len(map.tiles[0]):
+    #     if map.tiles[aiRow][aiCol + 1].isRoad and (aiRow != userRow or aiCol + 1 != userCol):
+    #         aiGameOver = False
+
+    # if (aiRow + 1 < len(map.tiles)):
+    #     if map.tiles[aiRow + 1][aiCol].isRoad and (aiRow + 1 != userRow or aiCol != userCol):
+    #         aiGameOver = False
+    #     if (aiCol - 1 >= 0):
+    #         if map.tiles[aiRow + 1][aiCol - 1].isRoad and (aiRow + 1 != userRow or aiCol - 1 != userCol):
+    #             aiGameOver = False
+    #     if (aiCol + 1 < len(map.tiles[0])):
+    #         if map.tiles[aiRow + 1][aiCol + 1].isRoad and (aiRow + 1 != userRow or aiCol + 1 != userCol):
+    #             aiGameOver = False
+
+    # return userGameOver or aiGameOver
 
 # TODO: Radi samo za 2 igraca, mora da se napravi i za vise igraca
 
@@ -282,73 +336,59 @@ def availableMoves(map, player):
     moves = []
     tiles = map.tiles
 
-    for ag in map.agents:
-        if ag.id != map.agentTurnId:
-            userPosition = ag
-        else:
-            aiPosition = ag
-
     if player.row - 1 >= 0:
         if tiles[player.row - 1][player.col].isRoad:
-            agentOnTile = False
-            if((userPosition.row == player.row - 1 and userPosition.col == player.col) or (aiPosition.row == player.row - 1 and aiPosition.col == player.col)):
-                agentOnTile = True
+            agentOnTile = any(map.agents[i].row == player.row -
+                              1 and map.agents[i].col == player.col for i in range(len(map.agents)))
             if not agentOnTile:
                 moves.append((player.row - 1, player.col))
 
     if player.row - 1 >= 0 and player.col + 1 < len(tiles[0]):
         if tiles[player.row - 1][player.col + 1].isRoad:
-            agentOnTile = False
-            if((userPosition.row == player.row - 1 and userPosition.col == player.col + 1) or (aiPosition.row == player.row - 1 and aiPosition.col == player.col + 1)):
-                agentOnTile = True
+            agentOnTile = any(map.agents[i].row == player.row - 1 and map.agents[i].col ==
+                              player.col + 1 for i in range(len(map.agents)))
             if not agentOnTile:
                 moves.append((player.row - 1, player.col + 1))
 
     if player.col + 1 < len(tiles[0]):
         if tiles[player.row][player.col + 1].isRoad:
-            agentOnTile = False
-            if((userPosition.row == player.row and userPosition.col == player.col + 1) or (aiPosition.row == player.row and aiPosition.col == player.col + 1)):
-                agentOnTile = True
+            agentOnTile = any(map.agents[i].row == player.row and map.agents[i].col ==
+                              player.col + 1 for i in range(len(map.agents)))
             if not agentOnTile:
                 moves.append((player.row, player.col + 1))
 
     if player.row + 1 < len(tiles) and player.col + 1 < len(tiles[0]):
         if tiles[player.row + 1][player.col + 1].isRoad:
-            agentOnTile = False
-            if((userPosition.row == player.row + 1 and userPosition.col == player.col + 1) or (aiPosition.row == player.row + 1 and aiPosition.col == player.col + 1)):
-                agentOnTile = True
+            agentOnTile = any(map.agents[i].row == player.row + 1 and map.agents[i].col ==
+                              player.col + 1 for i in range(len(map.agents)))
             if not agentOnTile:
                 moves.append((player.row + 1, player.col + 1))
 
     if player.row + 1 < len(tiles):
         if tiles[player.row + 1][player.col].isRoad:
-            agentOnTile = False
-            if((userPosition.row == player.row + 1 and userPosition.col == player.col) or (aiPosition.row == player.row + 1 and aiPosition.col == player.col)):
-                agentOnTile = True
+            agentOnTile = any(map.agents[i].row == player.row +
+                              1 and map.agents[i].col == player.col for i in range(len(map.agents)))
             if not agentOnTile:
                 moves.append((player.row + 1, player.col))
 
     if player.row + 1 < len(tiles) and player.col - 1 >= 0:
         if tiles[player.row + 1][player.col - 1].isRoad:
-            agentOnTile = False
-            if((userPosition.row == player.row + 1 and userPosition.col == player.col - 1) or (aiPosition.row == player.row + 1 and aiPosition.col == player.col - 1)):
-                agentOnTile = True
+            agentOnTile = any(map.agents[i].row == player.row + 1 and map.agents[i].col ==
+                              player.col - 1 for i in range(len(map.agents)))
             if not agentOnTile:
                 moves.append((player.row + 1, player.col - 1))
 
     if player.col - 1 >= 0:
         if tiles[player.row][player.col - 1].isRoad:
-            agentOnTile = False
-            if((userPosition.row == player.row and userPosition.col == player.col - 1) or (aiPosition.row == player.row and aiPosition.col == player.col - 1)):
-                agentOnTile = True
+            agentOnTile = any(map.agents[i].row == player.row and map.agents[i].col ==
+                              player.col - 1 for i in range(len(map.agents)))
             if not agentOnTile:
                 moves.append((player.row, player.col - 1))
 
     if player.row - 1 >= 0 and player.col - 1 >= 0:
         if tiles[player.row - 1][player.col - 1].isRoad:
-            agentOnTile = False
-            if((userPosition.row == player.row - 1 and userPosition.col == player.col - 1) or (aiPosition.row == player.row - 1 and aiPosition.col == player.col - 1)):
-                agentOnTile = True
+            agentOnTile = any(map.agents[i].row == player.row - 1 and map.agents[i].col ==
+                              player.col - 1 for i in range(len(map.agents)))
             if not agentOnTile:
                 moves.append((player.row - 1, player.col - 1))
 
