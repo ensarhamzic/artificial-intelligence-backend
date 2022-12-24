@@ -610,6 +610,40 @@ class ExpectimaxAgent(Agent):
         return expectimax(map, True, map.maxDepth)
 
 
+class MaxNAgent(Agent):
+    def __init__(self, row, col):
+        super().__init__(row, col)
+
+    def getAgentMove(self, map):
+        startTime = time.time()
+
+        def maxn(map, depth, playerIndex):
+            # Base case - the game is over, so we return the value of the board
+            if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
+                return [evaluateMap(map) for player in map.agents]
+            bestMoves = [None] * len(map.agents)
+            bestValues = [float("Inf") if playerIndex != map.agents[i].id else -float("Inf")
+                          for i in range(len(map.agents))]
+
+            print("INDEX", playerIndex)
+            player = next(
+                player for player in map.agents if player.id == playerIndex)
+
+            for move in availableMoves(map, player):
+                newMap = deepcopy(map)
+                makeMove(newMap, move, player)
+                nextPlayerIndex = (playerIndex + 1) % (len(map.agents) + 1)
+                if nextPlayerIndex == 0:
+                    nextPlayerIndex = 1
+                hypotheticalValues = maxn(newMap, depth - 1, nextPlayerIndex)
+                if any(val > bestValues[playerIndex - 1] if playerIndex - 1 == i else val < bestValues[i] for i, val in enumerate(hypotheticalValues)):
+                    bestValues = hypotheticalValues
+                    bestMoves[playerIndex - 1] = move
+            return [bestValues, bestMoves]
+
+        return maxn(map, map.maxDepth, map.agentTurnId)[1][map.agentTurnId]
+
+
 class RandomAgent(Agent):
     def __init__(self, row, col):
         super().__init__(row, col)
