@@ -98,11 +98,4 @@ def getMove(request):
 
     move = agent.getAgentMove(map)
 
-    # This is just in case that some agent returns -inf or inf as value for alpha or beta (in alpha beta pruning)
-    # -float("Inf") and float["inf"] can not be returned as json, so some conversion must be done
-    if move != None and len(move) > 2:
-        if move[2] < -1000:
-            move[2] = -1000
-        if move[3] > 1000:
-            move[3] = 1000
     return Response(move)

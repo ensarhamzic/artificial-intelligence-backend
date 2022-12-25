@@ -547,7 +547,15 @@ class MinimaxABAgent(Agent):
                     break
             return [bestValue, bestMove, alpha, beta]
 
-        return minimaxab(map, True, map.maxDepth, -float("Inf"), float("Inf"))
+        data = minimaxab(map, True, map.maxDepth, -float("Inf"), float("Inf"))
+
+        # -float("Inf") and float["inf"] can not be returned as json, so some conversion must be done
+        if data[2] < -1000:
+            data[2] = -1000
+        if data[3] > 1000:
+            data[3] = 1000
+
+        return data
 
 
 class ExpectimaxAgent(Agent):
@@ -620,10 +628,12 @@ class MaxNAgent(Agent):
         def maxn(map, depth, playerIndex):
             # Base case - the game is over, so we return the value of the board
             if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
-                return [evaluateMap(map) for player in map.agents]
+                return [[evaluateMap(map) for player in map.agents], [None for player in map.agents]]
             bestMoves = [None] * len(map.agents)
             bestValues = [float("Inf") if playerIndex != map.agents[i].id else -float("Inf")
                           for i in range(len(map.agents))]
+
+            print("Best values", bestValues)
 
             print("INDEX", playerIndex)
             player = next(
@@ -635,13 +645,27 @@ class MaxNAgent(Agent):
                 nextPlayerIndex = (playerIndex + 1) % (len(map.agents) + 1)
                 if nextPlayerIndex == 0:
                     nextPlayerIndex = 1
-                hypotheticalValues = maxn(newMap, depth - 1, nextPlayerIndex)
-                if any(val > bestValues[playerIndex - 1] if playerIndex - 1 == i else val < bestValues[i] for i, val in enumerate(hypotheticalValues)):
-                    bestValues = hypotheticalValues
-                    bestMoves[playerIndex - 1] = move
+                hypotheticalValues = maxn(
+                    newMap, depth - 1, nextPlayerIndex)[0]
+                # if any(val > bestValues[playerIndex - 1] if playerIndex - 1 == i else val < bestValues[i] for i, val in enumerate(hypotheticalValues)):
+                for i in range(len(hypotheticalValues)):
+                    val = hypotheticalValues[i]
+                    print("VAL", val, "BEST", bestValues[i], "I", i)
+                    if (playerIndex - 1 == i and val > bestValues[playerIndex - 1]) or (playerIndex - 1 != i and val < bestValues[i]):
+                        bestValues = hypotheticalValues
+                        bestMoves[playerIndex - 1] = move
             return [bestValues, bestMoves]
 
-        return maxn(map, map.maxDepth, map.agentTurnId)[1][map.agentTurnId]
+        data = maxn(map, map.maxDepth, map.agentTurnId)
+        value = data[0][map.agentTurnId - 1]
+        move = data[1][map.agentTurnId - 1]
+
+        # -float("Inf") and float["inf"] can not be returned as json, so some conversion must be done
+        if value < -1000:
+            value = -1000
+        if value > 1000:
+            value = 1000
+        return [value, move]
 
 
 class RandomAgent(Agent):
