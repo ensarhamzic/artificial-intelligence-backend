@@ -180,6 +180,9 @@ def evaluateMapN(map, playerId):
     # currentPlayerTiles = updatedPlayerTiles[playerId - 1]
     # del updatedPlayerTiles[playerId - 1]
     # score = currentPlayerTiles - max(updatedPlayerTiles)
+
+    # print("SCORE", score)
+
     print("SCORE", score)
     return score
 
@@ -373,7 +376,6 @@ class MinimaxABAgent(Agent):
                     bestMove = move
                     beta = min(beta, bestValue)
                 if alpha > beta:
-                    print("AAA")
                     break
             return [bestValue, bestMove, alpha, beta]
 
@@ -483,10 +485,24 @@ class MaxNAgent(Agent):
                         break
 
                 makeMove(newMap, move, playerOnMove)
+
                 nextPlayerIndex = (playerIndex + 1) % (len(map.agents) + 1)
                 if nextPlayerIndex == 0:
                     nextPlayerIndex = 1
-                print("NEXT PLAYER", nextPlayerIndex)
+
+                while True:
+                    mvs = availableMoves(newMap, next(
+                        player for player in newMap.agents if player.id == nextPlayerIndex))
+                    print("moves", mvs, "player", nextPlayerIndex)
+                    if len(mvs) > 0:
+                        break
+
+                    nextPlayerIndex = (nextPlayerIndex +
+                                       1) % (len(map.agents) + 1)
+                    if nextPlayerIndex == 0:
+                        nextPlayerIndex = 1
+
+                # print("NEXT PLAYER", nextPlayerIndex)
                 hypotheticalValues = maxn(
                     newMap, depth - 1, nextPlayerIndex)[0]
                 print("HYPOTHETICAL VALUES", hypotheticalValues)
@@ -495,11 +511,14 @@ class MaxNAgent(Agent):
                     val = hypotheticalValues[i]
                     # print("VAL", val, "BEST", bestValues[i], "I", i)
                     if (playerIndex - 1 == i and val > bestValues[playerIndex - 1]) or (playerIndex - 1 != i and val < bestValues[i]):
-                        bestValues = hypotheticalValues
-                        bestMoves[playerIndex - 1] = move
+                        # bestValues = hypotheticalValues
+                        # bestMoves[playerIndex - 1] = move
+                        bestValues[i] = val
+                        bestMoves[i - 1] = move
             return [bestValues, bestMoves]
 
         data = maxn(map, map.maxDepth, map.agentTurnId)
+        print("DATA", data)
         value = data[0][map.agentTurnId - 1]
         move = data[1][map.agentTurnId - 1]
 

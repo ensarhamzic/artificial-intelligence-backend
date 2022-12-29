@@ -50,8 +50,8 @@ def getMove(request):
     maxDepth = request.data["maxDepth"]
     timeToThink = request.data["timeToThink"]
 
-    for key, value in request.data.items():
-        print(key, value)
+    # for key, value in request.data.items():
+    #     print(key, value)
 
     map = PyStolovinaMap(
         rawMap, agents, agentTurnId, maxDepth, timeToThink)
