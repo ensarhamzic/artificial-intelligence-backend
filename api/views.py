@@ -89,9 +89,11 @@ def getMove(request):
         if agentOnTurn.tag == 2:
             agent = RandomAgent(agentOnTurn.row, agentOnTurn.col)
         if agentOnTurn.tag == 3:
-            pass
+            if len(agents) != 2:
+                agentAlgorithmValid = False
+            agent = MinimaxABAgent(agentOnTurn.row, agentOnTurn.col)
         if agentOnTurn.tag == 4:
-            pass
+            agent = MaxNAgent(agentOnTurn.row, agentOnTurn.col)
 
     if not agentAlgorithmValid:
         return Response({"error": "Invalid agent algorithm"}, status=status.HTTP_400_BAD_REQUEST)

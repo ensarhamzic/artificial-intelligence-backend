@@ -490,11 +490,18 @@ class MaxNAgent(Agent):
                 if nextPlayerIndex == 0:
                     nextPlayerIndex = 1
 
+                savedNextPlayerIndex = nextPlayerIndex
+                playersWithoutMoves = 0
                 while True:
                     mvs = availableMoves(newMap, next(
                         player for player in newMap.agents if player.id == nextPlayerIndex))
                     print("moves", mvs, "player", nextPlayerIndex)
                     if len(mvs) > 0:
+                        break
+
+                    playersWithoutMoves += 1
+                    if playersWithoutMoves == len(newMap.agents):
+                        nextPlayerIndex = savedNextPlayerIndex
                         break
 
                     nextPlayerIndex = (nextPlayerIndex +
