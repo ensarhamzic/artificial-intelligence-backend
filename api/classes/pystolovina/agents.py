@@ -168,20 +168,25 @@ def evaluateMapN(map, playerId):
         return count
 
     playerTiles = []
+    print()
+    print("-----MAP------")
+    for row in tiles:
+        for tile in row:
+            symbol = "1" if tile.isRoad else "0"
+            print(symbol, end=" ")
+        print()
+
+    print("Agent on turn is", playerId)
     for ag in map.agents:
         visited = []
         queue = []
-        playerTiles.append(bfs(tiles[ag.row][ag.col]))
+        currentAgentScore = bfs(tiles[ag.row][ag.col])
+        print("Agent", ag.id, ag.type,
+              "Positions: [", ag.row, ", ", ag.col, "]",  "score", currentAgentScore)
+        playerTiles.append(currentAgentScore)
 
     score = playerTiles[playerId - 1] - \
         (sum(playerTiles) - playerTiles[playerId - 1]) / (len(playerTiles) - 1)
-
-    # updatedPlayerTiles = deepcopy(playerTiles)
-    # currentPlayerTiles = updatedPlayerTiles[playerId - 1]
-    # del updatedPlayerTiles[playerId - 1]
-    # score = currentPlayerTiles - max(updatedPlayerTiles)
-
-    # print("SCORE", score)
 
     print("SCORE", score)
     return score
@@ -518,10 +523,9 @@ class MaxNAgent(Agent):
                     val = hypotheticalValues[i]
                     # print("VAL", val, "BEST", bestValues[i], "I", i)
                     if (playerIndex - 1 == i and val > bestValues[playerIndex - 1]) or (playerIndex - 1 != i and val < bestValues[i]):
-                        # bestValues = hypotheticalValues
-                        # bestMoves[playerIndex - 1] = move
                         bestValues[i] = val
                         bestMoves[i - 1] = move
+
             return [bestValues, bestMoves]
 
         data = maxn(map, map.maxDepth, map.agentTurnId)
