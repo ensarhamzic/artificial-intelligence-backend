@@ -257,9 +257,28 @@ def availableMoves(map, player):
 
 
 def makeMove(map, move, player):
+    print()
+    print("makeMove: MAPA PRE POTEZA AGENTA ", player.id)
+    print("AGENT SE POMERA SA POZICIJE [", player.row, ", ",
+          player.col, "] NA [", move[0], ", ", move[1], "]")
+    for row in map.tiles:
+        for tile in row:
+            symbol = "1" if tile.isRoad else "0"
+            print(symbol, end=" ")
+        print()
+
     map.tiles[player.row][player.col].isRoad = False
     player.row = move[0]
     player.col = move[1]
+
+    print("makeMove: MAPA NAKON POTEZA AGENTA ", player.id)
+    print("AGENT SE POMERIO SA POZICIJE [", player.row, ", ",
+          player.col, "] NA [", move[0], ", ", move[1], "]")
+    for row in map.tiles:
+        for tile in row:
+            symbol = "1" if tile.isRoad else "0"
+            print(symbol, end=" ")
+        print()
 
 
 class Agent():
@@ -463,22 +482,20 @@ class MaxNAgent(Agent):
         startTime = time.time()
 
         def maxn(map, depth, playerIndex):
-            # Base case - the game is over, so we return the value of the board
+            print("POCETAK MAXN SA IGRACEM", playerIndex, "i dubinom", depth)
             if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
+                print("KRAJ MAXN SA IGRACEM", playerIndex, "i dubinom", depth)
                 return [[evaluateMapN(map, player.id) for player in map.agents], [None for player in map.agents]]
+
             bestMoves = [None] * len(map.agents)
             bestValues = [float("Inf") if playerIndex != map.agents[i].id else -float("Inf")
                           for i in range(len(map.agents))]
 
-            # print("Best moves", bestMoves)
-            # print("Best values", bestValues)
-
-            # print("INDEX", playerIndex)
             player = next(
                 player for player in map.agents if player.id == playerIndex)
 
             availMoves = availableMoves(map, player)
-            # print("PLAYER", player.id, "AVAIL MOVES", availMoves)
+            print("MOGUCI POTEZI:", availMoves, "ZA IGRACA", playerIndex)
 
             for move in availMoves:
                 newMap = deepcopy(map)
@@ -491,10 +508,19 @@ class MaxNAgent(Agent):
 
                 makeMove(newMap, move, playerOnMove)
 
+                print("maxN: MAPA NAKON POTEZA AGENTA ", playerOnMove.id)
+                print("provera: AGENT SE POMERIO NA POZICIJU:", move)
+                for row in map.tiles:
+                    for tile in row:
+                        symbol = "1" if tile.isRoad else "0"
+                        print(symbol, end=" ")
+                    print()
+
                 nextPlayerIndex = (playerIndex + 1) % (len(map.agents) + 1)
                 if nextPlayerIndex == 0:
                     nextPlayerIndex = 1
 
+                print("Sledeci igrac je", nextPlayerIndex)
                 savedNextPlayerIndex = nextPlayerIndex
                 playersWithoutMoves = 0
                 while True:
@@ -502,29 +528,41 @@ class MaxNAgent(Agent):
                         player for player in newMap.agents if player.id == nextPlayerIndex))
                     print("moves", mvs, "player", nextPlayerIndex)
                     if len(mvs) > 0:
+                        print("BREAK")
                         break
+                    print("CONTINUE")
 
                     playersWithoutMoves += 1
+                    print("playersWithoutMoves so far", playersWithoutMoves)
                     if playersWithoutMoves == len(newMap.agents):
                         nextPlayerIndex = savedNextPlayerIndex
+                        print("VRACENI NEXT PLAYER INDEX JE", nextPlayerIndex)
                         break
 
                     nextPlayerIndex = (nextPlayerIndex +
                                        1) % (len(map.agents) + 1)
+                    print("nextPlayerIndex pre vracanja", nextPlayerIndex)
                     if nextPlayerIndex == 0:
                         nextPlayerIndex = 1
+                    print("nextPlayerIndex posle vracanja", nextPlayerIndex)
+
+                print("Zavrsen izbor sledeceg igraca, izabrani igrac je:",
+                      nextPlayerIndex)
 
                 # print("NEXT PLAYER", nextPlayerIndex)
                 hypotheticalValues = maxn(
                     newMap, depth - 1, nextPlayerIndex)[0]
+
                 print("HYPOTHETICAL VALUES", hypotheticalValues)
+                print("BEST VALUES", bestValues)
+                print("BEST MOVES", bestMoves)
                 # if any(val > bestValues[playerIndex - 1] if playerIndex - 1 == i else val < bestValues[i] for i, val in enumerate(hypotheticalValues)):
                 for i in range(len(hypotheticalValues)):
                     val = hypotheticalValues[i]
                     # print("VAL", val, "BEST", bestValues[i], "I", i)
                     if (playerIndex - 1 == i and val > bestValues[playerIndex - 1]) or (playerIndex - 1 != i and val < bestValues[i]):
                         bestValues[i] = val
-                        bestMoves[i - 1] = move
+                        bestMoves[i] = move
 
             return [bestValues, bestMoves]
 
