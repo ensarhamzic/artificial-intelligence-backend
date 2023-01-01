@@ -8,20 +8,20 @@ import random
 # TODO: MNOGO LOS KOD, MORA DA SE OPTIMIZUJE
 # TODO: Za sad radi samo za 2 igraca, mora da se napravi i za vise igraca
 def isGameOver(map):
-    print("IS GAME OVER CHECK")
+    # print("IS GAME OVER CHECK")
     counter = 0
 
     for ag in map.agents:
         if len(availableMoves(map, ag)) == 0:
             counter += 1
 
-    print("COUNTER", counter)
+    # print("COUNTER", counter)
 
     if counter >= len(map.agents) - 1:
-        print("GAME OVER")
+        # print("GAME OVER")
         return True
     else:
-        print("NOT GAME OVER")
+        # print("NOT GAME OVER")
         return False
 
 # TODO: MNOGO LOS KOD, MORA DA SE OPTIMIZUJE
@@ -102,12 +102,12 @@ def evaluateMap(map):
     visited = []
     queue = []
     aiTiles = bfs(tiles[aiPosition.row][aiPosition.col])
-    print("SCORE", aiTiles - userTiles)
+    # print("SCORE", aiTiles - userTiles)
     return aiTiles - userTiles
 
 
 def evaluateMapN(map, playerId):
-    print("EVALUACIJA MAPE ZA IGRACA", playerId)
+    # print("EVALUACIJA MAPE ZA IGRACA", playerId)
 
     tiles = map.tiles
     playersCords = []
@@ -115,14 +115,14 @@ def evaluateMapN(map, playerId):
     for ag in map.agents:
         playersCords.append((ag.row, ag.col))
 
-    print("POZICIJE SVIH IGRACA", playersCords)
-    print("MAPA KOJU EVALUIRAMO JE:")
-    print("-----MAPA ZA EVALUACIJU------")
-    for row in tiles:
-        for tile in row:
-            symbol = "1" if tile.isRoad else "0"
-            print(symbol, end=" ")
-        print()
+    # print("POZICIJE SVIH IGRACA", playersCords)
+    # print("MAPA KOJU EVALUIRAMO JE:")
+    # print("-----MAPA ZA EVALUACIJU------")
+    # for row in tiles:
+    #     for tile in row:
+    #         symbol = "1" if tile.isRoad else "0"
+    #         print(symbol, end=" ")
+    #     print()
 
     neighborDict = {}  # empty dictionary that we need to fill
     # key => (i, j) -> i - row, j - column
@@ -188,22 +188,22 @@ def evaluateMapN(map, playerId):
         visited = []
         queue = []
         currentAgentScore = bfs(tiles[ag.row][ag.col])
-        print("Agent", ag.id, ag.type,
-              "Positions: [", ag.row, ", ", ag.col, "]",  "score", currentAgentScore)
+        # print("Agent", ag.id, ag.type,
+        #       "Positions: [", ag.row, ", ", ag.col, "]",  "score", currentAgentScore)
         playerTiles.append(currentAgentScore)
 
-    print("Player tiles", playerTiles)
-    print("Player", playerId, "score", playerTiles[playerId - 1])
-    print("SUMA", sum(playerTiles))
-    print("IZNAD RAZLOMACKE", (sum(playerTiles) - playerTiles[playerId - 1]))
-    print("ISPOD RAZLOMACKE", (len(playerTiles) - 1))
-    print("IZNAD RAZLOMACKE / ISPOD RAZLOMACKE", (sum(playerTiles) -
-          playerTiles[playerId - 1]) / (len(playerTiles) - 1))
+    # print("Player tiles", playerTiles)
+    # print("Player", playerId, "score", playerTiles[playerId - 1])
+    # print("SUMA", sum(playerTiles))
+    # print("IZNAD RAZLOMACKE", (sum(playerTiles) - playerTiles[playerId - 1]))
+    # print("ISPOD RAZLOMACKE", (len(playerTiles) - 1))
+    # print("IZNAD RAZLOMACKE / ISPOD RAZLOMACKE", (sum(playerTiles) -
+    #       playerTiles[playerId - 1]) / (len(playerTiles) - 1))
 
     score = playerTiles[playerId - 1] - \
         (sum(playerTiles) - playerTiles[playerId - 1]) / (len(playerTiles) - 1)
 
-    print("SCORE", score)
+    # print("SCORE", score)
     return score
 
 
@@ -272,28 +272,28 @@ def availableMoves(map, player):
 
 
 def makeMove(map, move, player):
-    print()
-    print("makeMove: MAPA PRE POTEZA AGENTA ", player.id)
-    print("AGENT SE POMERA SA POZICIJE [", player.row, ", ",
-          player.col, "] NA [", move[0], ", ", move[1], "]")
-    for row in map.tiles:
-        for tile in row:
-            symbol = "1" if tile.isRoad else "0"
-            print(symbol, end=" ")
-        print()
+    # print()
+    # print("makeMove: MAPA PRE POTEZA AGENTA ", player.id)
+    # print("AGENT SE POMERA SA POZICIJE [", player.row, ", ",
+    #       player.col, "] NA [", move[0], ", ", move[1], "]")
+    # for row in map.tiles:
+    #     for tile in row:
+    #         symbol = "1" if tile.isRoad else "0"
+    #         print(symbol, end=" ")
+    #     print()
 
     map.tiles[player.row][player.col].isRoad = False
     player.row = move[0]
     player.col = move[1]
 
-    print("makeMove: MAPA NAKON POTEZA AGENTA ", player.id)
-    print("AGENT SE POMERIO SA POZICIJE [", player.row, ", ",
-          player.col, "] NA [", move[0], ", ", move[1], "]")
-    for row in map.tiles:
-        for tile in row:
-            symbol = "1" if tile.isRoad else "0"
-            print(symbol, end=" ")
-        print()
+    # print("makeMove: MAPA NAKON POTEZA AGENTA ", player.id)
+    # print("AGENT SE POMERIO SA POZICIJE [", player.row, ", ",
+    #       player.col, "] NA [", move[0], ", ", move[1], "]")
+    # for row in map.tiles:
+    #     for tile in row:
+    #         symbol = "1" if tile.isRoad else "0"
+    #         print(symbol, end=" ")
+    #     print()
 
 
 class Agent():
@@ -703,7 +703,66 @@ class MaxNAgent(Agent):
             print("BEST MOVES", bestMove)
             return [bestValue, bestMove]
 
-        data = maxn(map, map.maxDepth, map.agentTurnId)
+        def maxnAB(map, depth, playerIndex, alpha=-float("inf"), beta=float("inf")):
+            if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
+                return [evaluateMapN(map, map.agentTurnId), None]
+
+            bestMove = None
+            bestValue = - \
+                float("inf") if playerIndex == map.agentTurnId else float("inf")
+
+            player = next(
+                player for player in map.agents if player.id == playerIndex)
+            availMoves = availableMoves(map, player)
+
+            for move in availMoves:
+                newMap = deepcopy(map)
+                playerOnMove = next(
+                    agent for agent in newMap.agents if agent.id == playerIndex)
+                makeMove(newMap, move, playerOnMove)
+
+                nextPlayerIndex = (playerIndex + 1) % (len(map.agents) + 1)
+                if nextPlayerIndex == 0:
+                    nextPlayerIndex = 1
+
+                savedNextPlayerIndex = nextPlayerIndex
+                playersWithoutMoves = 0
+                while True:
+                    mvs = availableMoves(newMap, next(
+                        player for player in newMap.agents if player.id == nextPlayerIndex))
+                    if len(mvs) > 0:
+                        break
+                    playersWithoutMoves += 1
+                    if playersWithoutMoves == len(newMap.agents):
+                        nextPlayerIndex = savedNextPlayerIndex
+                        break
+                    nextPlayerIndex = (nextPlayerIndex +
+                                       1) % (len(map.agents) + 1)
+                    if nextPlayerIndex == 0:
+                        nextPlayerIndex = 1
+
+                maxnData = maxnAB(newMap, depth - 1,
+                                  nextPlayerIndex, alpha, beta)
+                hypotheticalValue = maxnData[0]
+
+                if playerIndex == map.agentTurnId:
+                    if hypotheticalValue > bestValue:
+                        bestValue = hypotheticalValue
+                        bestMove = move
+                    if hypotheticalValue >= beta:
+                        return [bestValue, bestMove]
+                    alpha = max(alpha, bestValue)
+                else:
+                    if hypotheticalValue < bestValue:
+                        bestValue = hypotheticalValue
+                        bestMove = move
+                    if hypotheticalValue <= alpha:
+                        return [bestValue, bestMove]
+                    beta = min(beta, bestValue)
+
+            return [bestValue, bestMove]
+
+        data = maxnAB(map, map.maxDepth, map.agentTurnId)
         print("DATA", data)
         value = data[0]
         move = data[1]
