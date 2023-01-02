@@ -47,17 +47,13 @@ def getMove(request):
     rawMap = request.data["map"]
     agents = request.data["agents"]
     agentTurnId = request.data["agentTurnId"]
-    maxDepth = request.data["maxDepth"]
-    timeToThink = request.data["timeToThink"]
 
-    # for key, value in request.data.items():
-    #     print(key, value)
+    for key, value in request.data.items():
+        print(key, value)
 
-    map = PyStolovinaMap(
-        rawMap, agents, agentTurnId, maxDepth, timeToThink)
+    map = PyStolovinaMap(rawMap, agents, agentTurnId)
 
     agentOnTurn = None
-
     # if agent algorithm is not valid,
     # algorithm can't be run (for example, if there are more than 2 agents
     # and algorithm is minimax, it can't be done because minimax is just for 2 players)

@@ -3,10 +3,13 @@ import time
 import random
 
 # TODO: NAPRAVITI DA AKO JE PORAZ NEIZBEZAN VRACA SLEDECI KORAK U REDOSLEDU DEFINISANOM U PROJEKTU (GORE, GORE-DESNO, DESNO ...)
+# To se moze uraditi da na nacin da dodam dve globalne promenljive, jedna koja cuva broj koliko puta je isGameOver vratio True,
+# i broj koliko od tih puta je u stvari izgubio trenutni igrac na potezu (pri tome treba dosta voditi racuna ako igra vise igraca, jer igra ne mora biti zavrsena a trenutni
+# igrac moze da izgubi, pa da se i tu poveca brojac koji puta je trenutni igrac izgubio. Na kraju ako je broj koliko je puta igrac izgubio >= broj koiko puta je kraj igre,
+# onda to znaci da igrac koji je trenutno na potezu, gubi po svim listovima razvijenog stabla)
+# TODO: Dodati komentare koji objasnjavaju algoritme na engleskom jeziku
 
 
-# TODO: MNOGO LOS KOD, MORA DA SE OPTIMIZUJE
-# TODO: Za sad radi samo za 2 igraca, mora da se napravi i za vise igraca
 def isGameOver(map):
     # print("IS GAME OVER CHECK")
     counter = 0
