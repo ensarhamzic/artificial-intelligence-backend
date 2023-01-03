@@ -784,6 +784,8 @@ class RandomAgent(Agent):
         super().__init__(row, col)
 
     def getAgentMove(self, map):
+        if isGameOver(map):
+            return [0, None]
         for agent in map.agents:
             if agent.id == map.agentTurnId:
                 player = agent
