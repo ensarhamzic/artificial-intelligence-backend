@@ -2,33 +2,42 @@ from copy import deepcopy
 import time
 import random
 
-# TODO: NAPRAVITI DA AKO JE PORAZ NEIZBEZAN VRACA SLEDECI KORAK U REDOSLEDU DEFINISANOM U PROJEKTU (GORE, GORE-DESNO, DESNO ...)
-# To se moze uraditi da na nacin da dodam dve globalne promenljive, jedna koja cuva broj koliko puta je isGameOver vratio True,
-# i broj koliko od tih puta je u stvari izgubio trenutni igrac na potezu (pri tome treba dosta voditi racuna ako igra vise igraca, jer igra ne mora biti zavrsena a trenutni
-# igrac moze da izgubi, pa da se i tu poveca brojac koji puta je trenutni igrac izgubio. Na kraju ako je broj koliko je puta igrac izgubio >= broj koiko puta je kraj igre,
-# onda to znaci da igrac koji je trenutno na potezu, gubi po svim listovima razvijenog stabla)
-# TODO: Dodati komentare koji objasnjavaju algoritme na engleskom jeziku
+# these two below are used if the agent on turn is defeated on all of the leaves
+# specific project description says that in that case the agents next move should be first move clockwise, starting from the top
+numberOfLeaves = 0  # number of leaves in the tree
+agentOnTurnLostTimes = 0  # number of times when agent on turn lost on the leaf
 
 
 def isGameOver(map):
-    # print("IS GAME OVER CHECK")
     counter = 0
 
     for ag in map.agents:
         if len(availableMoves(map, ag)) == 0:
             counter += 1
 
-    # print("COUNTER", counter)
-
     if counter >= len(map.agents) - 1:
-        # print("GAME OVER")
         return True
     else:
-        # print("NOT GAME OVER")
         return False
 
-# TODO: MNOGO LOS KOD, MORA DA SE OPTIMIZUJE
 
+def bfs(node, neighborDict, visited, queue, playersCords):
+    visited.append((node.row, node.col))
+    queue.append(node)
+    count = 0
+
+    while queue:
+        s = queue.pop(0)
+        neighbors = []
+        if (s.row, s.col) in neighborDict:
+            neighbors = neighborDict[(s.row, s.col)]
+        for neighbor in neighbors:
+            nbr = (neighbor.row, neighbor.col)
+            if nbr not in visited and nbr not in playersCords:
+                count += 1
+                visited.append(nbr)
+                queue.append(neighbor)
+    return count
 
 def evaluateMap(map):
     for ag in map.agents:
@@ -39,8 +48,7 @@ def evaluateMap(map):
 
     tiles = map.tiles
 
-    userCords = (userPosition.row, userPosition.col)
-    aiCords = (aiPosition.row, aiPosition.col)
+    playersCords = [(userPosition.row, userPosition.col), (aiPosition.row, aiPosition.col)]
 
     neighborDict = {}  # empty dictionary that we need to fill
     # key => (i, j) -> i - row, j - column
@@ -50,30 +58,30 @@ def evaluateMap(map):
             neighbors = []
 
             if i-1 >= 0:
-                if tiles[i-1][j].isRoad and (i-1, j) != userCords and (i-1, j) != aiCords:
+                if tiles[i-1][j].isRoad and (i-1, j) not in playersCords:
                     neighbors.append(tiles[i-1][j])
                 if j-1 >= 0:
-                    if tiles[i - 1][j - 1].isRoad and (i-1, j - 1) != userCords and (i-1, j - 1) != aiCords:
+                    if tiles[i - 1][j - 1].isRoad and (i-1, j - 1) not in playersCords:
                         neighbors.append(tiles[i - 1][j - 1])
                 if j + 1 < len(tiles[0]):
-                    if tiles[i - 1][j + 1].isRoad and (i-1, j + 1) != userCords and (i-1, j + 1) != aiCords:
+                    if tiles[i - 1][j + 1].isRoad and (i-1, j + 1) not in playersCords:
                         neighbors.append(tiles[i - 1][j + 1])
 
             if j - 1 >= 0:
-                if tiles[i][j - 1].isRoad and (i, j - 1) != userCords and (i, j - 1) != aiCords:
+                if tiles[i][j - 1].isRoad and (i, j - 1) not in playersCords:
                     neighbors.append(tiles[i][j - 1])
             if j + 1 < len(tiles[0]):
-                if tiles[i][j + 1].isRoad and (i, j + 1) != userCords and (i, j + 1) != aiCords:
+                if tiles[i][j + 1].isRoad and (i, j + 1) not in playersCords:
                     neighbors.append(tiles[i][j + 1])
 
             if i+1 < len(tiles):
-                if tiles[i + 1][j].isRoad and (i+1, j) != userCords and (i+1, j) != aiCords:
+                if tiles[i + 1][j].isRoad and (i+1, j) not in playersCords:
                     neighbors.append(tiles[i + 1][j])
                 if j - 1 >= 0:
-                    if tiles[i + 1][j - 1].isRoad and (i+1, j - 1) != userCords and (i+1, j - 1) != aiCords:
+                    if tiles[i + 1][j - 1].isRoad and (i+1, j - 1) not in playersCords:
                         neighbors.append(tiles[i + 1][j - 1])
                 if j + 1 < len(tiles[0]):
-                    if tiles[i + 1][j + 1].isRoad and (i+1, j + 1) != userCords and (i+1, j + 1) != aiCords:
+                    if tiles[i + 1][j + 1].isRoad and (i+1, j + 1) not in playersCords:
                         neighbors.append(tiles[i + 1][j + 1])
 
             # if tile has more than one adjacent tiles (it is not one-way tile where player loses)
@@ -82,50 +90,20 @@ def evaluateMap(map):
 
     visited = []  # List to keep track of visited nodes.
     queue = []  # Initialize a queue
-
-    def bfs(node):
-        visited.append((node.row, node.col))
-        queue.append(node)
-        count = 0
-
-        while queue:
-            s = queue.pop(0)
-            neighbors = []
-            if (s.row, s.col) in neighborDict:
-                neighbors = neighborDict[(s.row, s.col)]
-            for neighbor in neighbors:
-                nbr = (neighbor.row, neighbor.col)
-                if nbr not in visited and nbr != aiCords and nbr != userCords:
-                    count += 1
-                    visited.append((neighbor.row, neighbor.col))
-                    queue.append(neighbor)
-        return count
-
-    userTiles = bfs(tiles[userPosition.row][userPosition.col])
+    userTiles = bfs(tiles[userPosition.row][userPosition.col], neighborDict, visited, queue, playersCords)
     visited = []
     queue = []
-    aiTiles = bfs(tiles[aiPosition.row][aiPosition.col])
-    # print("SCORE", aiTiles - userTiles)
+    aiTiles = bfs(tiles[aiPosition.row][aiPosition.col], neighborDict, visited, queue, playersCords)
     return aiTiles - userTiles
 
 
 def evaluateMapN(map, playerId):
-    # print("EVALUACIJA MAPE ZA IGRACA", playerId)
 
     tiles = map.tiles
     playersCords = []
 
     for ag in map.agents:
         playersCords.append((ag.row, ag.col))
-
-    # print("POZICIJE SVIH IGRACA", playersCords)
-    # print("MAPA KOJU EVALUIRAMO JE:")
-    # print("-----MAPA ZA EVALUACIJU------")
-    # for row in tiles:
-    #     for tile in row:
-    #         symbol = "1" if tile.isRoad else "0"
-    #         print(symbol, end=" ")
-    #     print()
 
     neighborDict = {}  # empty dictionary that we need to fill
     # key => (i, j) -> i - row, j - column
@@ -168,45 +146,16 @@ def evaluateMapN(map, playerId):
     visited = []  # List to keep track of visited nodes.
     queue = []  # Initialize a queue
 
-    def bfs(node):
-        visited.append((node.row, node.col))
-        queue.append(node)
-        count = 0
-
-        while queue:
-            s = queue.pop(0)
-            neighbors = []
-            if (s.row, s.col) in neighborDict:
-                neighbors = neighborDict[(s.row, s.col)]
-            for neighbor in neighbors:
-                nbr = (neighbor.row, neighbor.col)
-                if nbr not in visited and nbr not in playersCords:
-                    count += 1
-                    visited.append((neighbor.row, neighbor.col))
-                    queue.append(neighbor)
-        return count
-
     playerTiles = []
     for ag in map.agents:
         visited = []
         queue = []
-        currentAgentScore = bfs(tiles[ag.row][ag.col])
-        # print("Agent", ag.id, ag.type,
-        #       "Positions: [", ag.row, ", ", ag.col, "]",  "score", currentAgentScore)
+        currentAgentScore = bfs(tiles[ag.row][ag.col], neighborDict, visited, queue, playersCords)
         playerTiles.append(currentAgentScore)
-
-    # print("Player tiles", playerTiles)
-    # print("Player", playerId, "score", playerTiles[playerId - 1])
-    # print("SUMA", sum(playerTiles))
-    # print("IZNAD RAZLOMACKE", (sum(playerTiles) - playerTiles[playerId - 1]))
-    # print("ISPOD RAZLOMACKE", (len(playerTiles) - 1))
-    # print("IZNAD RAZLOMACKE / ISPOD RAZLOMACKE", (sum(playerTiles) -
-    #       playerTiles[playerId - 1]) / (len(playerTiles) - 1))
 
     score = playerTiles[playerId - 1] - \
         (sum(playerTiles) - playerTiles[playerId - 1]) / (len(playerTiles) - 1)
 
-    # print("SCORE", score)
     return score
 
 
@@ -275,28 +224,9 @@ def availableMoves(map, player):
 
 
 def makeMove(map, move, player):
-    # print()
-    # print("makeMove: MAPA PRE POTEZA AGENTA ", player.id)
-    # print("AGENT SE POMERA SA POZICIJE [", player.row, ", ",
-    #       player.col, "] NA [", move[0], ", ", move[1], "]")
-    # for row in map.tiles:
-    #     for tile in row:
-    #         symbol = "1" if tile.isRoad else "0"
-    #         print(symbol, end=" ")
-    #     print()
-
     map.tiles[player.row][player.col].isRoad = False
     player.row = move[0]
     player.col = move[1]
-
-    # print("makeMove: MAPA NAKON POTEZA AGENTA ", player.id)
-    # print("AGENT SE POMERIO SA POZICIJE [", player.row, ", ",
-    #       player.col, "] NA [", move[0], ", ", move[1], "]")
-    # for row in map.tiles:
-    #     for tile in row:
-    #         symbol = "1" if tile.isRoad else "0"
-    #         print(symbol, end=" ")
-    #     print()
 
 
 class Agent():
@@ -312,116 +242,144 @@ class MinimaxAgent(Agent):
     def __init__(self, row, col):
         super().__init__(row, col)
 
-    def getAgentMove(self, map):
-        startTime = time.time()
+    def minimax(self, map, isMax, depth, startTime):
+        global numberOfLeaves
+        global agentOnTurnLostTimes
+        # Base case - the game is over, so we return the value of the board
+        if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
+            numberOfLeaves += 1
+            if(len(availableMoves(map, next(agent for agent in map.agents if agent.id == map.agentTurnId))) == 0):
+                agentOnTurnLostTimes += 1
+            return [evaluateMap(map), None]
+        bestMove = None
+        if isMax == True:
+            bestValue = -float("Inf")
+        else:
+            bestValue = float("Inf")
 
-        def minimax(map, isMax, depth):
-            # Base case - the game is over, so we return the value of the board
-            if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
-                return [evaluateMap(map), None]
-            bestMove = None
-            if isMax == True:
-                bestValue = -float("Inf")
+        player = None
+        for agent in map.agents:
+            if isMax:
+                if agent.id == map.agentTurnId:
+                    player = agent
+                    break
             else:
-                bestValue = float("Inf")
+                if agent.id != map.agentTurnId:
+                    player = agent
+                    break
 
-            player = None
-            for agent in map.agents:
+        for move in availableMoves(map, player):
+            newMap = deepcopy(map)
+
+            playerOnMove = None
+            for agent in newMap.agents:
                 if isMax:
-                    if agent.id == map.agentTurnId:
-                        player = agent
+                    if agent.id == newMap.agentTurnId:
+                        playerOnMove = agent
                         break
                 else:
-                    if agent.id != map.agentTurnId:
-                        player = agent
+                    if agent.id != newMap.agentTurnId:
+                        playerOnMove = agent
                         break
 
-            for move in availableMoves(map, player):
-                newMap = deepcopy(map)
+            makeMove(newMap, move, playerOnMove)
+            hypotheticalValue = self.minimax(
+                newMap, not isMax, depth - 1, startTime)[0]
+            if isMax == True and hypotheticalValue > bestValue:
+                bestValue = hypotheticalValue
+                bestMove = move
+            if isMax == False and hypotheticalValue < bestValue:
+                bestValue = hypotheticalValue
+                bestMove = move
+        return [bestValue, bestMove]
 
-                playerOnMove = None
-                for agent in newMap.agents:
-                    if isMax:
-                        if agent.id == newMap.agentTurnId:
-                            playerOnMove = agent
-                            break
-                    else:
-                        if agent.id != newMap.agentTurnId:
-                            playerOnMove = agent
-                            break
+    def getAgentMove(self, map):
+        global numberOfLeaves
+        global agentOnTurnLostTimes
+        numberOfLeaves = 0
+        agentOnTurnLostTimes = 0
+        startTime = time.time()
 
-                makeMove(newMap, move, playerOnMove)
-                hypotheticalValue = minimax(newMap, not isMax, depth - 1)[0]
-                if isMax == True and hypotheticalValue > bestValue:
-                    bestValue = hypotheticalValue
-                    bestMove = move
-                if isMax == False and hypotheticalValue < bestValue:
-                    bestValue = hypotheticalValue
-                    bestMove = move
-            return [bestValue, bestMove]
+        data = self.minimax(map, True, map.maxDepth, startTime)
+        if numberOfLeaves == agentOnTurnLostTimes:
+            data[0] = -999
+            avMvs = availableMoves(
+                map, next(agent for agent in map.agents if agent.id == map.agentTurnId))
+            if(len(avMvs) > 0):
+                data[1] = avMvs[0]
 
-        return minimax(map, True, map.maxDepth)
+        return data
 
 
 class MinimaxABAgent(Agent):
     def __init__(self, row, col):
         super().__init__(row, col)
 
-    def getAgentMove(self, map):
-        startTime = time.time()
+    def minimaxab(self, map, isMax, depth, alpha, beta, startTime):
+        global numberOfLeaves
+        global agentOnTurnLostTimes
+        # Base case - the game is over, so we return the value of the board
+        if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
+            numberOfLeaves += 1
+            if(len(availableMoves(map, next(agent for agent in map.agents if agent.id == map.agentTurnId))) == 0):
+                agentOnTurnLostTimes += 1
+            return [evaluateMap(map), None, alpha, beta]
+        bestMove = None
+        if isMax == True:
+            bestValue = -float("Inf")
+        else:
+            bestValue = float("Inf")
 
-        def minimaxab(map, isMax, depth, alpha, beta):
-            # Base case - the game is over, so we return the value of the board
-            if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
-                return [evaluateMap(map), None, alpha, beta]
-            bestMove = None
-            if isMax == True:
-                bestValue = -float("Inf")
+        player = None
+
+        for agent in map.agents:
+            if isMax:
+                if agent.id == map.agentTurnId:
+                    player = agent
+                    break
             else:
-                bestValue = float("Inf")
+                if agent.id != map.agentTurnId:
+                    player = agent
+                    break
 
-            player = None
+        for move in availableMoves(map, player):
+            newMap = deepcopy(map)
 
-            for agent in map.agents:
+            playerOnMove = None
+            for agent in newMap.agents:
                 if isMax:
-                    if agent.id == map.agentTurnId:
-                        player = agent
+                    if agent.id == newMap.agentTurnId:
+                        playerOnMove = agent
                         break
                 else:
-                    if agent.id != map.agentTurnId:
-                        player = agent
+                    if agent.id != newMap.agentTurnId:
+                        playerOnMove = agent
                         break
 
-            for move in availableMoves(map, player):
-                newMap = deepcopy(map)
+            makeMove(newMap, move, playerOnMove)
+            hypotheticalValue = self.minimaxab(
+                newMap, not isMax, depth - 1, alpha, beta, startTime)[0]
+            if isMax == True and hypotheticalValue > bestValue:
+                bestValue = hypotheticalValue
+                bestMove = move
+                alpha = max(alpha, bestValue)
+            if isMax == False and hypotheticalValue < bestValue:
+                bestValue = hypotheticalValue
+                bestMove = move
+                beta = min(beta, bestValue)
+            if alpha > beta:
+                break
+        return [bestValue, bestMove, alpha, beta]
 
-                playerOnMove = None
-                for agent in newMap.agents:
-                    if isMax:
-                        if agent.id == newMap.agentTurnId:
-                            playerOnMove = agent
-                            break
-                    else:
-                        if agent.id != newMap.agentTurnId:
-                            playerOnMove = agent
-                            break
+    def getAgentMove(self, map):
+        global numberOfLeaves
+        global agentOnTurnLostTimes
+        numberOfLeaves = 0
+        agentOnTurnLostTimes = 0
+        startTime = time.time()
 
-                makeMove(newMap, move, playerOnMove)
-                hypotheticalValue = minimaxab(
-                    newMap, not isMax, depth - 1, alpha, beta)[0]
-                if isMax == True and hypotheticalValue > bestValue:
-                    bestValue = hypotheticalValue
-                    bestMove = move
-                    alpha = max(alpha, bestValue)
-                if isMax == False and hypotheticalValue < bestValue:
-                    bestValue = hypotheticalValue
-                    bestMove = move
-                    beta = min(beta, bestValue)
-                if alpha > beta:
-                    break
-            return [bestValue, bestMove, alpha, beta]
-
-        data = minimaxab(map, True, map.maxDepth, -float("Inf"), float("Inf"))
+        data = self.minimaxab(map, True, map.maxDepth, -
+                              float("Inf"), float("Inf"), startTime)
 
         # -float("Inf") and float["inf"] can not be returned as json, so some conversion must be done
         if data[2] < -1000:
@@ -429,6 +387,12 @@ class MinimaxABAgent(Agent):
         if data[3] > 1000:
             data[3] = 1000
 
+        if numberOfLeaves == agentOnTurnLostTimes:
+            data[0] = -999
+            avMvs = availableMoves(
+                map, next(agent for agent in map.agents if agent.id == map.agentTurnId))
+            if(len(avMvs) > 0):
+                data[1] = avMvs[0]
         return data
 
 
@@ -436,347 +400,240 @@ class ExpectimaxAgent(Agent):
     def __init__(self, row, col):
         super().__init__(row, col)
 
+    def expectimax(self, map, isMax, depth, startTime):
+        global numberOfLeaves
+        global agentOnTurnLostTimes
+        if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
+            numberOfLeaves += 1
+            if(len(availableMoves(map, next(agent for agent in map.agents if agent.id == map.agentTurnId))) == 0):
+                agentOnTurnLostTimes += 1
+            return [evaluateMap(map), None]
+
+        for agent in map.agents:
+            if isMax:
+                if agent.id == map.agentTurnId:
+                    player = agent
+                    break
+            else:
+                if agent.id != map.agentTurnId:
+                    player = agent
+                    break
+
+        if isMax:
+            bestScore = -float("Inf")
+            bestMove = None
+            for move in availableMoves(map, player):
+                newMap = deepcopy(map)
+
+                playerOnMove = None
+                for agent in newMap.agents:
+                    if agent.id == newMap.agentTurnId:
+                        playerOnMove = agent
+                        break
+
+                makeMove(newMap, move, playerOnMove)
+                score = self.expectimax(newMap, False, depth - 1, startTime)[0]
+                if (score > bestScore):
+                    bestScore = score
+                    bestMove = move
+            return [bestScore, bestMove]
+        else:
+            scores = []
+            moves = []
+            for move in availableMoves(map, player):
+                newMap = deepcopy(map)
+
+                playerOnMove = None
+                for agent in newMap.agents:
+                    if agent.id != newMap.agentTurnId:
+                        playerOnMove = agent
+                        break
+
+                makeMove(newMap, move, playerOnMove)
+                result = self.expectimax(newMap, True, depth - 1, startTime)
+                scores.append(result[0])
+                moves.append(result[1])
+            return [sum(scores) / len(scores), random.choice(moves)]
+
     def getAgentMove(self, map):
+        global numberOfLeaves
+        global agentOnTurnLostTimes
+        numberOfLeaves = 0
+        agentOnTurnLostTimes = 0
         startTime = time.time()
 
-        def expectimax(map, isMax, depth):
-            if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
-                return [evaluateMap(map), None]
+        data = self.expectimax(map, True, map.maxDepth, startTime)
+        if numberOfLeaves == agentOnTurnLostTimes:
+            data[0] = -999
+            avMvs = availableMoves(
+                map, next(agent for agent in map.agents if agent.id == map.agentTurnId))
+            if(len(avMvs) > 0):
+                data[1] = avMvs[0]
 
-            for agent in map.agents:
-                if isMax:
-                    if agent.id == map.agentTurnId:
-                        player = agent
-                        break
-                else:
-                    if agent.id != map.agentTurnId:
-                        player = agent
-                        break
-
-            if isMax:
-                bestScore = -float("Inf")
-                bestMove = None
-                for move in availableMoves(map, player):
-                    newMap = deepcopy(map)
-
-                    playerOnMove = None
-                    for agent in newMap.agents:
-                        if agent.id == newMap.agentTurnId:
-                            playerOnMove = agent
-                            break
-
-                    makeMove(newMap, move, playerOnMove)
-                    score = expectimax(newMap, False, depth - 1)[0]
-                    if (score > bestScore):
-                        bestScore = score
-                        bestMove = move
-                return [bestScore, bestMove]
-            else:
-                scores = []
-                moves = []
-                for move in availableMoves(map, player):
-                    newMap = deepcopy(map)
-
-                    playerOnMove = None
-                    for agent in newMap.agents:
-                        if agent.id != newMap.agentTurnId:
-                            playerOnMove = agent
-                            break
-
-                    makeMove(newMap, move, playerOnMove)
-                    result = expectimax(newMap, True, depth - 1)
-                    scores.append(result[0])
-                    moves.append(result[1])
-                return [sum(scores) / len(scores), random.choice(moves)]
-
-        return expectimax(map, True, map.maxDepth)
+        return data
 
 
 class MaxNAgent(Agent):
     def __init__(self, row, col):
         super().__init__(row, col)
 
+    def maxn(self, map, depth, playerIndex, startTime):
+        global numberOfLeaves
+        global agentOnTurnLostTimes
+        print(time.time() - startTime)
+        if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
+            numberOfLeaves += 1
+            if(len(availableMoves(map, next(agent for agent in map.agents if agent.id == map.agentTurnId))) == 0):
+                agentOnTurnLostTimes += 1
+            return [evaluateMapN(map, map.agentTurnId), None]
+
+        bestMove = None
+        bestValue = - \
+            float("inf") if playerIndex == map.agentTurnId else float("inf")
+
+        player = next(
+            player for player in map.agents if player.id == playerIndex)
+
+        availMoves = availableMoves(map, player)
+
+        for move in availMoves:
+            newMap = deepcopy(map)
+
+            playerOnMove = None
+            for agent in newMap.agents:
+                if agent.id == playerIndex:
+                    playerOnMove = agent
+                    break
+
+            makeMove(newMap, move, playerOnMove)
+
+            nextPlayerIndex = (playerIndex + 1) % (len(map.agents) + 1)
+            if nextPlayerIndex == 0:
+                nextPlayerIndex = 1
+
+            savedNextPlayerIndex = nextPlayerIndex
+            playersWithoutMoves = 0
+            while True:
+                mvs = availableMoves(newMap, next(
+                    player for player in newMap.agents if player.id == nextPlayerIndex))
+
+                if len(mvs) > 0:
+
+                    break
+
+                playersWithoutMoves += 1
+                if playersWithoutMoves == len(newMap.agents):
+                    nextPlayerIndex = savedNextPlayerIndex
+                    break
+
+                nextPlayerIndex = (nextPlayerIndex +
+                                   1) % (len(map.agents) + 1)
+                if nextPlayerIndex == 0:
+                    nextPlayerIndex = 1
+
+            maxnData = self.maxn(
+                newMap, depth - 1, nextPlayerIndex, startTime)
+            hypotheticalValue = maxnData[0]
+
+            if playerIndex == map.agentTurnId and hypotheticalValue > bestValue:
+                bestValue = hypotheticalValue
+                bestMove = move
+
+            if playerIndex != map.agentTurnId and hypotheticalValue < bestValue:
+                bestValue = hypotheticalValue
+                bestMove = move
+
+        return [bestValue, bestMove]
+
+    def maxnAB(self, map, depth, playerIndex, alpha, beta, startTime):
+        global numberOfLeaves
+        global agentOnTurnLostTimes
+        print(time.time() - startTime)
+        if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
+            numberOfLeaves += 1
+            if(len(availableMoves(map, next(agent for agent in map.agents if agent.id == map.agentTurnId))) == 0):
+                agentOnTurnLostTimes += 1
+            return [evaluateMapN(map, map.agentTurnId), None]
+
+        bestMove = None
+        bestValue = - \
+            float("inf") if playerIndex == map.agentTurnId else float("inf")
+
+        player = next(
+            player for player in map.agents if player.id == playerIndex)
+        availMoves = availableMoves(map, player)
+
+        for move in availMoves:
+            newMap = deepcopy(map)
+            playerOnMove = next(
+                agent for agent in newMap.agents if agent.id == playerIndex)
+            makeMove(newMap, move, playerOnMove)
+
+            nextPlayerIndex = (playerIndex + 1) % (len(map.agents) + 1)
+            if nextPlayerIndex == 0:
+                nextPlayerIndex = 1
+
+            savedNextPlayerIndex = nextPlayerIndex
+            playersWithoutMoves = 0
+            while True:
+                mvs = availableMoves(newMap, next(
+                    player for player in newMap.agents if player.id == nextPlayerIndex))
+                if len(mvs) > 0:
+                    break
+                playersWithoutMoves += 1
+                if playersWithoutMoves == len(newMap.agents):
+                    nextPlayerIndex = savedNextPlayerIndex
+                    break
+                nextPlayerIndex = (nextPlayerIndex +
+                                   1) % (len(map.agents) + 1)
+                if nextPlayerIndex == 0:
+                    nextPlayerIndex = 1
+
+            maxnData = self.maxnAB(newMap, depth - 1,
+                                   nextPlayerIndex, alpha, beta, startTime)
+            hypotheticalValue = maxnData[0]
+
+            if playerIndex == map.agentTurnId:
+                if hypotheticalValue > bestValue:
+                    bestValue = hypotheticalValue
+                    bestMove = move
+                if hypotheticalValue >= beta:
+                    return [bestValue, bestMove]
+                alpha = max(alpha, bestValue)
+            else:
+                if hypotheticalValue < bestValue:
+                    bestValue = hypotheticalValue
+                    bestMove = move
+                if hypotheticalValue <= alpha:
+                    return [bestValue, bestMove]
+                beta = min(beta, bestValue)
+
+        return [bestValue, bestMove]
+
     def getAgentMove(self, map):
+        global numberOfLeaves
+        global agentOnTurnLostTimes
+        numberOfLeaves = 0
+        agentOnTurnLostTimes = 0
         startTime = time.time()
 
-        # def maxn(map, depth, playerIndex):
-        #     print("POCETAK MAXN SA IGRACEM", playerIndex, "i dubinom", depth)
-        #     if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
-        #         print("KRAJ MAXN SA IGRACEM", playerIndex, "i dubinom", depth)
-        #         return [[evaluateMapN(map, player.id) for player in map.agents], [None for player in map.agents]]
-
-        #     bestMoves = [None] * len(map.agents)
-        #     bestValues = [float("Inf") if playerIndex != map.agents[i].id else -float("Inf")
-        #                   for i in range(len(map.agents))]
-
-        #     player = next(
-        #         player for player in map.agents if player.id == playerIndex)
-
-        #     availMoves = availableMoves(map, player)
-        #     print("MOGUCI POTEZI:", availMoves, "ZA IGRACA", playerIndex)
-
-        #     for move in availMoves:
-        #         newMap = deepcopy(map)
-
-        #         playerOnMove = None
-        #         for agent in newMap.agents:
-        #             if agent.id == playerIndex:
-        #                 playerOnMove = agent
-        #                 break
-
-        #         makeMove(newMap, move, playerOnMove)
-
-        #         print("maxN: MAPA NAKON POTEZA AGENTA ", playerOnMove.id)
-        #         print("provera: AGENT SE POMERIO NA POZICIJU:", move)
-        #         for row in newMap.tiles:
-        #             for tile in row:
-        #                 symbol = "1" if tile.isRoad else "0"
-        #                 print(symbol, end=" ")
-        #             print()
-
-        #         nextPlayerIndex = (playerIndex + 1) % (len(map.agents) + 1)
-        #         if nextPlayerIndex == 0:
-        #             nextPlayerIndex = 1
-
-        #         print("Sledeci igrac je", nextPlayerIndex)
-        #         savedNextPlayerIndex = nextPlayerIndex
-        #         playersWithoutMoves = 0
-        #         while True:
-        #             mvs = availableMoves(newMap, next(
-        #                 player for player in newMap.agents if player.id == nextPlayerIndex))
-        #             print("moves", mvs, "player", nextPlayerIndex)
-        #             if len(mvs) > 0:
-        #                 print("BREAK")
-        #                 break
-        #             print("CONTINUE")
-
-        #             playersWithoutMoves += 1
-        #             print("playersWithoutMoves so far", playersWithoutMoves)
-        #             if playersWithoutMoves == len(newMap.agents):
-        #                 nextPlayerIndex = savedNextPlayerIndex
-        #                 print("VRACENI NEXT PLAYER INDEX JE", nextPlayerIndex)
-        #                 break
-
-        #             nextPlayerIndex = (nextPlayerIndex +
-        #                                1) % (len(map.agents) + 1)
-        #             print("nextPlayerIndex pre vracanja", nextPlayerIndex)
-        #             if nextPlayerIndex == 0:
-        #                 nextPlayerIndex = 1
-        #             print("nextPlayerIndex posle vracanja", nextPlayerIndex)
-
-        #         print("Zavrsen izbor sledeceg igraca, izabrani igrac je:",
-        #               nextPlayerIndex)
-
-        #         # print("NEXT PLAYER", nextPlayerIndex)
-
-        #         maxnData = maxn(
-        #             newMap, depth - 1, nextPlayerIndex)
-        #         hypotheticalValues = maxnData[0]
-        #         # hypotheticalMoves = maxnData[1]
-
-        #         print("HYPOTHETICAL VALUES", hypotheticalValues)
-        #         print("BEST VALUES", bestValues)
-        #         print("BEST MOVES", bestMoves)
-        #         # if any(val > bestValues[playerIndex - 1] if playerIndex - 1 == i else val < bestValues[i] for i, val in enumerate(hypotheticalValues)):
-        #         for i in range(len(hypotheticalValues)):
-        #             val = hypotheticalValues[i]
-        #             # print("VAL", val, "BEST", bestValues[i], "I", i)
-        #             if (playerIndex - 1 == i and val > bestValues[playerIndex - 1]) or (playerIndex - 1 != i and val < bestValues[i]):
-        #                 # print("Player", playerIndex, "VAL", val,
-        #                 #       "BEST", bestValues[i], "I", i)
-        #                 # print("MOVE", move, "BEST MOVE", bestMoves[i])
-        #                 # if playerIndex == map.agentTurnId and val > bestValues[playerIndex - 1]:
-        #                 #     bestMoves[playerIndex - 1] = move
-        #                 # bestValues[i] = val
-
-        #                 bestValues = hypotheticalValues
-        #                 if i == playerIndex - 1:
-        #                     bestMoves[i] = move
-        #                 break
-
-        #     print("KRAJ MAXN SA IGRACEM", playerIndex, "i dubinom", depth)
-        #     print("BEST VALUES", bestValues)
-        #     print("BEST MOVES", bestMoves)
-        #     return [bestValues, bestMoves]
-
-        def maxn(map, depth, playerIndex):
-            print("POCETAK MAXN SA IGRACEM", playerIndex, "i dubinom", depth)
-            if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
-                print("KRAJ MAXN SA IGRACEM", playerIndex, "i dubinom", depth)
-                return [evaluateMapN(map, map.agentTurnId), None]
-
-            bestMove = None
-            bestValue = - \
-                float("inf") if playerIndex == map.agentTurnId else float("inf")
-
-            player = next(
-                player for player in map.agents if player.id == playerIndex)
-
-            availMoves = availableMoves(map, player)
-            print("MOGUCI POTEZI:", availMoves, "ZA IGRACA", playerIndex)
-
-            for move in availMoves:
-                newMap = deepcopy(map)
-
-                playerOnMove = None
-                for agent in newMap.agents:
-                    if agent.id == playerIndex:
-                        playerOnMove = agent
-                        break
-
-                makeMove(newMap, move, playerOnMove)
-
-                print("maxN: MAPA NAKON POTEZA AGENTA ", playerOnMove.id)
-                print("provera: AGENT SE POMERIO NA POZICIJU:", move)
-                for row in newMap.tiles:
-                    for tile in row:
-                        symbol = "1" if tile.isRoad else "0"
-                        print(symbol, end=" ")
-                    print()
-
-                nextPlayerIndex = (playerIndex + 1) % (len(map.agents) + 1)
-                if nextPlayerIndex == 0:
-                    nextPlayerIndex = 1
-
-                print("Sledeci igrac je", nextPlayerIndex)
-                savedNextPlayerIndex = nextPlayerIndex
-                playersWithoutMoves = 0
-                while True:
-                    mvs = availableMoves(newMap, next(
-                        player for player in newMap.agents if player.id == nextPlayerIndex))
-                    print("moves", mvs, "player", nextPlayerIndex)
-                    if len(mvs) > 0:
-                        print("BREAK")
-                        break
-                    print("CONTINUE")
-
-                    playersWithoutMoves += 1
-                    print("playersWithoutMoves so far", playersWithoutMoves)
-                    if playersWithoutMoves == len(newMap.agents):
-                        nextPlayerIndex = savedNextPlayerIndex
-                        print("VRACENI NEXT PLAYER INDEX JE", nextPlayerIndex)
-                        break
-
-                    nextPlayerIndex = (nextPlayerIndex +
-                                       1) % (len(map.agents) + 1)
-                    print("nextPlayerIndex pre vracanja", nextPlayerIndex)
-                    if nextPlayerIndex == 0:
-                        nextPlayerIndex = 1
-                    print("nextPlayerIndex posle vracanja", nextPlayerIndex)
-
-                print("Zavrsen izbor sledeceg igraca, izabrani igrac je:",
-                      nextPlayerIndex)
-
-                # print("NEXT PLAYER", nextPlayerIndex)
-
-                maxnData = maxn(
-                    newMap, depth - 1, nextPlayerIndex)
-                hypotheticalValue = maxnData[0]
-                # hypotheticalMoves = maxnData[1]
-
-                # print("HYPOTHETICAL VALUES", hypotheticalValues)
-                # print("BEST VALUES", bestValues)
-                # print("BEST MOVES", bestMoves)
-                # if any(val > bestValues[playerIndex - 1] if playerIndex - 1 == i else val < bestValues[i] for i, val in enumerate(hypotheticalValues)):
-                # for i in range(len(hypotheticalValues)):
-                #     val = hypotheticalValues[i]
-                #     # print("VAL", val, "BEST", bestValues[i], "I", i)
-                #     if (map.agentTurnId - 1 == i and val > bestValues[map.agentTurnId - 1]) or (map.agentTurnId - 1 != i and val < bestValues[i]):
-                #         # print("Player", playerIndex, "VAL", val,
-                #         #       "BEST", bestValues[i], "I", i)
-                #         # print("MOVE", move, "BEST MOVE", bestMoves[i])
-                #         # if playerIndex == map.agentTurnId and val > bestValues[playerIndex - 1]:
-                #         #     bestMoves[playerIndex - 1] = move
-                #         # bestValues[i] = val
-
-                #         bestValues = hypotheticalValues
-                #         bestMoves[i] = move
-                #         break
-
-                if playerIndex == map.agentTurnId and hypotheticalValue > bestValue:
-                    bestValue = hypotheticalValue
-                    bestMove = move
-
-                if playerIndex != map.agentTurnId and hypotheticalValue < bestValue:
-                    bestValue = hypotheticalValue
-                    bestMove = move
-
-            print("KRAJ MAXN SA IGRACEM", playerIndex, "i dubinom", depth)
-            print("BEST VALUES", bestValue)
-            print("BEST MOVES", bestMove)
-            return [bestValue, bestMove]
-
-        def maxnAB(map, depth, playerIndex, alpha=-float("inf"), beta=float("inf")):
-            if isGameOver(map) or depth == 0 or time.time() - startTime >= map.timeToThink:
-                return [evaluateMapN(map, map.agentTurnId), None]
-
-            bestMove = None
-            bestValue = - \
-                float("inf") if playerIndex == map.agentTurnId else float("inf")
-
-            player = next(
-                player for player in map.agents if player.id == playerIndex)
-            availMoves = availableMoves(map, player)
-
-            for move in availMoves:
-                newMap = deepcopy(map)
-                playerOnMove = next(
-                    agent for agent in newMap.agents if agent.id == playerIndex)
-                makeMove(newMap, move, playerOnMove)
-
-                nextPlayerIndex = (playerIndex + 1) % (len(map.agents) + 1)
-                if nextPlayerIndex == 0:
-                    nextPlayerIndex = 1
-
-                savedNextPlayerIndex = nextPlayerIndex
-                playersWithoutMoves = 0
-                while True:
-                    mvs = availableMoves(newMap, next(
-                        player for player in newMap.agents if player.id == nextPlayerIndex))
-                    if len(mvs) > 0:
-                        break
-                    playersWithoutMoves += 1
-                    if playersWithoutMoves == len(newMap.agents):
-                        nextPlayerIndex = savedNextPlayerIndex
-                        break
-                    nextPlayerIndex = (nextPlayerIndex +
-                                       1) % (len(map.agents) + 1)
-                    if nextPlayerIndex == 0:
-                        nextPlayerIndex = 1
-
-                maxnData = maxnAB(newMap, depth - 1,
-                                  nextPlayerIndex, alpha, beta)
-                hypotheticalValue = maxnData[0]
-
-                if playerIndex == map.agentTurnId:
-                    if hypotheticalValue > bestValue:
-                        bestValue = hypotheticalValue
-                        bestMove = move
-                    if hypotheticalValue >= beta:
-                        return [bestValue, bestMove]
-                    alpha = max(alpha, bestValue)
-                else:
-                    if hypotheticalValue < bestValue:
-                        bestValue = hypotheticalValue
-                        bestMove = move
-                    if hypotheticalValue <= alpha:
-                        return [bestValue, bestMove]
-                    beta = min(beta, bestValue)
-
-            return [bestValue, bestMove]
-
-        data = maxnAB(map, map.maxDepth, map.agentTurnId)
-        print("DATA", data)
-        value = data[0]
-        move = data[1]
-        print("VALUE", value, "MOVE", move)
+        data = self.maxnAB(map, map.maxDepth, map.agentTurnId, -
+                           float("inf"), float("inf"), startTime)
+        # data = self.maxn(map, map.maxDepth, map.agentTurnId, startTime)
 
         # -float("Inf") and float["inf"] can not be returned as json, so some conversion must be done
-        if value < -1000:
-            value = -1000
-        if value > 1000:
-            value = 1000
-        return [value, move]
+        if data[0] < -1000:
+            data[0] = -1000
+        if data[0] > 1000:
+            data[0] = 1000
+
+        if numberOfLeaves == agentOnTurnLostTimes:
+            data[0] = -999
+            avMvs = availableMoves(
+                map, next(agent for agent in map.agents if agent.id == map.agentTurnId))
+            if(len(avMvs) > 0):
+                data[1] = avMvs[0]
+        return data
 
 
 class RandomAgent(Agent):
@@ -797,3 +654,57 @@ class RandomAgent(Agent):
             return [0, None]
 
         return [0, random.choice(moves)]
+
+
+class ManhattanDistanceAgent(Agent):
+    def __init__(self, row, col):
+        super().__init__(row, col)
+
+    def manhattanDistance(self, player1, player2):
+        distance = 0
+        distance += abs(player1.row - player2.row)
+        distance += abs(player1.col - player2.col)
+        return distance
+
+    def getAgentMove(self, map):
+        if isGameOver(map):
+            return [0, None]
+
+        goalAgent = None
+        studentAgent = next(
+            (agent for agent in map.agents if agent.type == "student"), None)
+        if studentAgent is not None and len(availableMoves(map, studentAgent)) != 0:
+            goalAgent = studentAgent
+        else:
+            goalAgents = []
+            for agent in map.agents:
+                if agent.id != map.agentTurnId and len(availableMoves(map, agent)) != 0:
+                    goalAgents.append(agent)
+
+            goalAgent = random.choice(goalAgents)
+
+        for agent in map.agents:
+            if agent.id == map.agentTurnId:
+                player = agent
+                break
+
+        moves = availableMoves(map, player)
+
+        if len(moves) == 0:
+            return [0, None]
+
+        bestMove = moves[0]
+        bestDistance = float("inf")
+        for move in moves:
+            newMap = deepcopy(map)
+            playerOnMove = next(
+                agent for agent in newMap.agents if agent.id == newMap.agentTurnId)
+            makeMove(newMap, move, playerOnMove)
+
+            distance = self.manhattanDistance(playerOnMove, goalAgent)
+
+            if distance < bestDistance:
+                bestDistance = distance
+                bestMove = move
+
+        return [0, bestMove]
