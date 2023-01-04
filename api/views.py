@@ -81,7 +81,7 @@ def getMove(request):
 
     elif agentOnTurn.type == "teacher":
         if agentOnTurn.tag == 1:
-            pass
+            agent = ManhattanDistanceAgent(agentOnTurn.row, agentOnTurn.col)
         if agentOnTurn.tag == 2:
             agent = RandomAgent(agentOnTurn.row, agentOnTurn.col)
         if agentOnTurn.tag == 3:
