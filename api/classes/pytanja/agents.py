@@ -10,12 +10,70 @@ class Agent():
         pass
 
 
-# TODO: IMA MNOGO PONAVLJANJA KODA PONEGDE, SVE TO TREBA DA SE SREDI
-
 def isAdjacent(el1, el2):
     if (el1[0] == el2[0] and abs(el1[1] - el2[1]) == 1) or (el1[1] == el2[1] and abs(el1[0] - el2[0]) == 1):
         return True
     return False
+
+
+def getNeighborsDict(tiles):
+    neighborDict = {}  # empty dictionary that we need to fill
+    # key => (i, j) -> i - row, j - column
+    # value => array of neighbors arranged like up, right, down, left
+    for i in range(len(tiles)):
+        for j in range(len(tiles[i])):
+            neighbors = []
+
+            # add upper tile if exists
+            if i-1 >= 0:
+                tile = tiles[i-1][j]
+                neighbors.append(tiles[i-1][j])
+
+            # add right tile if exists
+            if j+1 < len(tiles[i]):
+                neighbors.append(tiles[i][j+1])
+
+            # add down tile if exists
+            if i+1 < len(tiles):
+                neighbors.append(tiles[i+1][j])
+
+            # add left tile if exists
+            if j-1 >= 0:
+                neighbors.append(tiles[i][j-1])
+
+            neighborDict[(i, j)] = neighbors
+
+    return neighborDict
+
+
+def dfs(node, path, visited, finishPosition, neighborDict):
+    currNode = (node.row, node.col)
+    if currNode not in visited:
+        if len(path) > 1:
+            # if current tile is NOT adjacent to the last one in path, go back till it is
+            while not isAdjacent((path[-1].row, path[-1].col), currNode):
+                path.pop()
+
+        path.append(node)
+        visited.add(currNode)
+
+        # neighbors = neighborDict[currNode]
+        neighbors = neighborDict[currNode].copy()
+
+        # variable side is used to give preference to sides.
+        # we go through neighbors list (which is already sorted as north, east, south, west),
+        # but we give those sides integer values to be able to sort them by that field easily
+        side = 1
+        for neighbor in neighbors:
+            neighbor.side = side
+            side += 1
+
+        neighbors.sort(key=lambda tile: (tile.cost, tile.side))
+
+        for neighbor in neighbors:
+            # condition to stop calling recursive method if finish is found
+            if (finishPosition.row, finishPosition.col) not in visited:
+                dfs(neighbor, path, visited, finishPosition, neighborDict)
 
 
 class Aki(Agent):
@@ -25,65 +83,13 @@ class Aki(Agent):
     def getAgentPath(self, map):
         tiles = map.tiles
         finishPosition = map.finishPosition
-        neighborDict = {}  # empty dictionary that we need to fill
-        # key => (i, j) -> i - row, j - column
-        # value => array of neighbors arranged like up, right, down, left
-        for i in range(len(tiles)):
-            for j in range(len(tiles[i])):
-                neighbors = []
-
-                # add upper tile if exists
-                if i-1 >= 0:
-                    tile = tiles[i-1][j]
-                    neighbors.append(tiles[i-1][j])
-
-                # add right tile if exists
-                if j+1 < len(tiles[i]):
-                    neighbors.append(tiles[i][j+1])
-
-                # add down tile if exists
-                if i+1 < len(tiles):
-                    neighbors.append(tiles[i+1][j])
-
-                # add left tile if exists
-                if j-1 >= 0:
-                    neighbors.append(tiles[i][j-1])
-
-                neighborDict[(i, j)] = neighbors
+        neighborDict = getNeighborsDict(tiles)
 
         visited = set()  # Visited nodes are added here (set is used to prevent duplicates)
         path = []
 
-        def dfs(node):
-            currNode = (node.row, node.col)
-            if currNode not in visited:
-                if len(path) > 1:
-                    # if current tile is NOT adjacent to the last one in path, go back till it is
-                    while not isAdjacent((path[-1].row, path[-1].col), currNode):
-                        path.pop()
-
-                path.append(node)
-                visited.add(currNode)
-
-                # neighbors = neighborDict[currNode]
-                neighbors = neighborDict[currNode].copy()
-
-                # variable side is used to give preference to sides.
-                # we go through neighbors list (which is already sorted as north, east, south, west),
-                # but we give those sides integer values to be able to sort them by that field easily
-                side = 1
-                for neighbor in neighbors:
-                    neighbor.side = side
-                    side += 1
-
-                neighbors.sort(key=lambda tile: (tile.cost, tile.side))
-
-                for neighbor in neighbors:
-                    # condition to stop calling recursive method if finish is found
-                    if (finishPosition.row, finishPosition.col) not in visited:
-                        dfs(neighbor)
-
-        dfs(tiles[self.row][self.col])
+        dfs(tiles[self.row][self.col], path,
+            visited, finishPosition, neighborDict)
         return path
 
 
@@ -94,84 +100,51 @@ class Jocke(Agent):
     def getAgentPath(self, map):
         tiles = map.tiles
         finishPosition = map.finishPosition
-        neighborDict = {}  # empty dictionary that we need to fill
-        # key => (i, j) -> i - row, j - column
-        # value => array of neighbors arranged like up, right, down, left
-        for i in range(len(tiles)):
-            for j in range(len(tiles[i])):
-                neighbors = []
-
-                # add upper tile if exists
-                if i-1 >= 0:
-                    tile = tiles[i-1][j]
-                    neighbors.append(tiles[i-1][j])
-
-                # add right tile if exists
-                if j+1 < len(tiles[i]):
-                    neighbors.append(tiles[i][j+1])
-
-                # add down tile if exists
-                if i+1 < len(tiles):
-                    neighbors.append(tiles[i+1][j])
-
-                # add left tile if exists
-                if j-1 >= 0:
-                    neighbors.append(tiles[i][j-1])
-
-                neighborDict[(i, j)] = neighbors
+        neighborDict = getNeighborsDict(tiles)
 
         visited = set()  # Visited nodes are added here (set is used to prevent duplicates)
         queue = []  # every element of queue is path
 
-        # TODO: BILO BI BOLJE DA SE OVA FUNKCIJA MAKNE I OSTAVI SAMO ONO STO JE U NJOJ
-        def bfs(node):
-            queue.append([node])
-            visited.add((node.row, node.col))
-            while queue:
-                # get the first path from the queue
-                path = queue.pop(0)
-                # get the last node from the path
-                node = path[-1]
-                currNode = (node.row, node.col)
+        startTile = tiles[self.row][self.col]
+        queue.append([startTile])
+        visited.add((startTile.row, startTile.col))
+        while queue:
+            # get the first path from the queue
+            path = queue.pop(0)
+            # get the last node from the path
+            node = path[-1]
+            currNode = (node.row, node.col)
 
-                side = 1
-                neighbors = neighborDict[currNode].copy()
-                # for every neighbor, we give it preference with side and with average cost of all neighbors
-                for neighbor in neighbors:
-                    neighbor.side = side
-                    side += 1
-                    price = 0
-                    count = 0
-                    innerNode = (neighbor.row, neighbor.col)
-                    innerNeighbors = neighborDict[innerNode].copy()
-                    for innerNeighbor in innerNeighbors:
-                        # TODO: OVAJ IF JE BITAN AKO *NE* RACUNAMO VISITED CVOROVE, MAKNUTI AKO NE TREBA
-                        # if (innerNeighbor.row, innerNeighbor.col) not in visited:
-                        price += innerNeighbor.cost
-                        count += 1
-                    if price == 0:  # TODO: MAYBE COMPLETELY UNNECESSARY
-                        neighbor.averageCost = 0
-                    else:
-                        neighbor.averageCost = price / count
+            side = 1
+            neighbors = neighborDict[currNode].copy()
+            # for every neighbor, we give it preference with side and with average cost of all neighbors
+            for neighbor in neighbors:
+                neighbor.side = side
+                side += 1
+                price = 0
+                count = 0
+                innerNode = (neighbor.row, neighbor.col)
+                innerNeighbors = neighborDict[innerNode].copy()
+                for innerNeighbor in innerNeighbors:
+                    price += innerNeighbor.cost
+                    count += 1
+                if price == 0:
+                    neighbor.averageCost = 0
+                else:
+                    neighbor.averageCost = price / count
 
-                neighbors.sort(key=lambda tile: (tile.averageCost, tile.side))
+            neighbors.sort(key=lambda tile: (tile.averageCost, tile.side))
 
-                for nbr in neighbors:
-                    nbrNode = (nbr.row, nbr.col)
-                    if nbrNode not in visited:
-                        newPath = list(path)
-                        newPath.append(nbr)
-                        queue.append(newPath)
-                        visited.add(nbrNode)
-                        # path found
-                        if nbrNode[0] == finishPosition.row and nbrNode[1] == finishPosition.col:
-                            return newPath
-
-                print(len(queue))
-
-        path = bfs(tiles[self.row][self.col])
-
-        return path
+            for nbr in neighbors:
+                nbrNode = (nbr.row, nbr.col)
+                if nbrNode not in visited:
+                    newPath = list(path)
+                    newPath.append(nbr)
+                    queue.append(newPath)
+                    visited.add(nbrNode)
+                    # path found
+                    if nbrNode[0] == finishPosition.row and nbrNode[1] == finishPosition.col:
+                        return newPath
 
 
 class Draza(Agent):
@@ -181,32 +154,7 @@ class Draza(Agent):
     def getAgentPath(self, map):
         tiles = map.tiles
         finishPosition = map.finishPosition
-        neighborDict = {}  # empty dictionary that we need to fill
-        # key => (i, j) -> i - row, j - column
-        # value => array of neighbors arranged like up, right, down, left
-        for i in range(len(tiles)):
-            for j in range(len(tiles[i])):
-
-                neighbors = []
-
-                # add upper tile if exists
-                if i-1 >= 0:
-                    tile = tiles[i-1][j]
-                    neighbors.append(tiles[i-1][j])
-
-                # add right tile if exists
-                if j+1 < len(tiles[i]):
-                    neighbors.append(tiles[i][j+1])
-
-                # add down tile if exists
-                if i+1 < len(tiles):
-                    neighbors.append(tiles[i+1][j])
-
-                # add left tile if exists
-                if j-1 >= 0:
-                    neighbors.append(tiles[i][j-1])
-
-                neighborDict[(i, j)] = neighbors
+        neighborDict = getNeighborsDict(tiles)
 
         startTile = tiles[self.row][self.col]
         paths = [
@@ -252,8 +200,6 @@ class Draza(Agent):
 
             paths.sort(key=lambda d: (d['price'], len(d['path'])))
 
-            print(len(paths))
-
 
 class Bole(Agent):
     def __init__(self, row, col):
@@ -262,35 +208,13 @@ class Bole(Agent):
     def getAgentPath(self, map):
         tiles = map.tiles
         finishPosition = map.finishPosition
-        neighborDict = {}  # empty dictionary that we need to fill
-        # key => (i, j) -> i - row, j - column
-        # value => array of neighbors arranged like up, right, down, left
+        neighborDict = getNeighborsDict(tiles)
+
         for i in range(len(tiles)):
             for j in range(len(tiles[i])):
                 dx = abs(finishPosition.row - i)
                 dy = abs(finishPosition.col - j)
                 tiles[i][j].heuristics = 2 * (dx + dy)
-
-                neighbors = []
-
-                # add upper tile if exists
-                if i-1 >= 0:
-                    tile = tiles[i-1][j]
-                    neighbors.append(tiles[i-1][j])
-
-                # add right tile if exists
-                if j+1 < len(tiles[i]):
-                    neighbors.append(tiles[i][j+1])
-
-                # add down tile if exists
-                if i+1 < len(tiles):
-                    neighbors.append(tiles[i+1][j])
-
-                # add left tile if exists
-                if j-1 >= 0:
-                    neighbors.append(tiles[i][j-1])
-
-                neighborDict[(i, j)] = neighbors
 
         startTile = tiles[self.row][self.col]
         paths = [
@@ -338,5 +262,3 @@ class Bole(Agent):
 
             paths.sort(key=lambda d: (
                 d['price'] + d['heuristics'], len(d['path'])))
-
-            print(len(paths))
