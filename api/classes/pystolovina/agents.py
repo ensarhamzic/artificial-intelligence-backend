@@ -39,6 +39,7 @@ def bfs(node, neighborDict, visited, queue, playersCords):
                 queue.append(neighbor)
     return count
 
+
 def evaluateMap(map):
     for ag in map.agents:
         if ag.id != map.agentTurnId:
@@ -48,7 +49,8 @@ def evaluateMap(map):
 
     tiles = map.tiles
 
-    playersCords = [(userPosition.row, userPosition.col), (aiPosition.row, aiPosition.col)]
+    playersCords = [(userPosition.row, userPosition.col),
+                    (aiPosition.row, aiPosition.col)]
 
     neighborDict = {}  # empty dictionary that we need to fill
     # key => (i, j) -> i - row, j - column
@@ -90,10 +92,12 @@ def evaluateMap(map):
 
     visited = []  # List to keep track of visited nodes.
     queue = []  # Initialize a queue
-    userTiles = bfs(tiles[userPosition.row][userPosition.col], neighborDict, visited, queue, playersCords)
+    userTiles = bfs(tiles[userPosition.row][userPosition.col],
+                    neighborDict, visited, queue, playersCords)
     visited = []
     queue = []
-    aiTiles = bfs(tiles[aiPosition.row][aiPosition.col], neighborDict, visited, queue, playersCords)
+    aiTiles = bfs(tiles[aiPosition.row][aiPosition.col],
+                  neighborDict, visited, queue, playersCords)
     return aiTiles - userTiles
 
 
@@ -150,7 +154,8 @@ def evaluateMapN(map, playerId):
     for ag in map.agents:
         visited = []
         queue = []
-        currentAgentScore = bfs(tiles[ag.row][ag.col], neighborDict, visited, queue, playersCords)
+        currentAgentScore = bfs(
+            tiles[ag.row][ag.col], neighborDict, visited, queue, playersCords)
         playerTiles.append(currentAgentScore)
 
     score = playerTiles[playerId - 1] - \
@@ -301,6 +306,8 @@ class MinimaxAgent(Agent):
         startTime = time.time()
 
         data = self.minimax(map, True, map.maxDepth, startTime)
+
+        # if the agent will surely lose, return first available move in clockwise order, starting from up
         if numberOfLeaves == agentOnTurnLostTimes:
             data[0] = -999
             avMvs = availableMoves(
@@ -387,6 +394,7 @@ class MinimaxABAgent(Agent):
         if data[3] > 1000:
             data[3] = 1000
 
+        # if the agent will surely lose, return first available move in clockwise order, starting from up
         if numberOfLeaves == agentOnTurnLostTimes:
             data[0] = -999
             avMvs = availableMoves(
@@ -419,6 +427,7 @@ class ExpectimaxAgent(Agent):
                     player = agent
                     break
 
+        # if it is max player's turn, maximize the value
         if isMax:
             bestScore = -float("Inf")
             bestMove = None
@@ -437,6 +446,7 @@ class ExpectimaxAgent(Agent):
                     bestScore = score
                     bestMove = move
             return [bestScore, bestMove]
+        # if it is other player's turn, expect the value
         else:
             scores = []
             moves = []
@@ -463,6 +473,8 @@ class ExpectimaxAgent(Agent):
         startTime = time.time()
 
         data = self.expectimax(map, True, map.maxDepth, startTime)
+
+        # if the agent will surely lose, return first available move in clockwise order, starting from up
         if numberOfLeaves == agentOnTurnLostTimes:
             data[0] = -999
             avMvs = availableMoves(
@@ -477,6 +489,7 @@ class MaxNAgent(Agent):
     def __init__(self, row, col):
         super().__init__(row, col)
 
+    # without alpha-beta pruning
     def maxn(self, map, depth, playerIndex, startTime):
         global numberOfLeaves
         global agentOnTurnLostTimes
@@ -518,7 +531,6 @@ class MaxNAgent(Agent):
                     player for player in newMap.agents if player.id == nextPlayerIndex))
 
                 if len(mvs) > 0:
-
                     break
 
                 playersWithoutMoves += 1
@@ -545,6 +557,7 @@ class MaxNAgent(Agent):
 
         return [bestValue, bestMove]
 
+    # with alpha-beta pruning
     def maxnAB(self, map, depth, playerIndex, alpha, beta, startTime):
         global numberOfLeaves
         global agentOnTurnLostTimes
@@ -627,6 +640,7 @@ class MaxNAgent(Agent):
         if data[0] > 1000:
             data[0] = 1000
 
+        # if the agent will surely lose, return first available move in clockwise order, starting from up
         if numberOfLeaves == agentOnTurnLostTimes:
             data[0] = -999
             avMvs = availableMoves(
@@ -673,8 +687,13 @@ class ManhattanDistanceAgent(Agent):
         goalAgent = None
         studentAgent = next(
             (agent for agent in map.agents if agent.type == "student"), None)
+
+        # if student's agent exists and it has available moves,
+        # then it is the goal agent for which the agent on turn is calculating minimum manhattan distance
         if studentAgent is not None and len(availableMoves(map, studentAgent)) != 0:
             goalAgent = studentAgent
+        # if student's agent does not exist or it has no available moves,
+        # then the goal agent is random other agent that has available moves, excluding the agent on turn
         else:
             goalAgents = []
             for agent in map.agents:
